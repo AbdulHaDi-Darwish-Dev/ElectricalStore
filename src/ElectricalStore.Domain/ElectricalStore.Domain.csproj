@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>ElectricalStore.Domain</RootNamespace>
+    <AssemblyName>ElectricalStore.Domain</AssemblyName>
+  </PropertyGroup>
+</Project>

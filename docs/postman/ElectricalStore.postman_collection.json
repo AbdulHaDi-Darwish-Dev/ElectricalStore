@@ -1,0 +1,2895 @@
+{
+  "info": {
+    "_postman_id": "2f96ea5e-4d97-494c-ad5c-6d0c714fdabf",
+    "name": "ElectricalStore API",
+    "description": "Executable API contract for ElectricalStore (frozen backend).\n\n**Suggested Storefront sequence:** Catalog categories \u2192 products \u2192 product detail \u2192 shipping zones \u2192 checkout preview \u2192 Place guest order \u2192 guest track \u2192 Login \u2192 my orders.\n\n**Suggested Back Office sequence:** Login \u2192 categories \u2192 product+variants \u2192 media \u2192 inventory adjust \u2192 shipping zone \u2192 ordering settings \u2192 orders lifecycle \u2192 Access Management.\n\n**Auth:** Collection Bearer uses `{{accessToken}}`. Public folders/requests set noauth.\n\n**Idempotency:** Set/reuse `idempotencyKey` for Place Order retries; replace for a new order. Pre-request initializes only when empty.\n\n**Guest:** `X-Order-Token: {{guestOrderToken}}` \u2014 never commit real tokens.\n\nAligned to current Minimal API endpoints / Swagger tags. No invented deferred routes.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5080"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": "Liveness. Expected: 200 `{ status: ok }`.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Operational health (anonymous)."
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Register a new customer. Expected: 201. Sample password is a local placeholder only \u2014 replace in your private environment; never use production passwords.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userName\": \"storefront.user\",\n  \"email\": \"storefront.user@example.test\",\n  \"password\": \"LocalDev_ChangeMe_1!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Login. Expected: 200 with `accessToken`, `refreshToken`, `userId` (or MFA payload if enabled). 401 invalid credentials. Rate-limited (`Login`). Test script stores tokens into the active environment (never console.log).",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailOrUserName\": \"{{ownerEmail}}\",\n  \"password\": \"{{ownerPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.accessToken) { pm.environment.set('accessToken', json.accessToken); }",
+                  "  if (json.refreshToken) { pm.environment.set('refreshToken', json.refreshToken); }",
+                  "  if (json.userId) { pm.environment.set('userId', json.userId); }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Refresh",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "refresh"
+              ]
+            },
+            "description": "Rotate access token. Expected: 200. Test script updates `accessToken` / `refreshToken`.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.accessToken) { pm.environment.set('accessToken', json.accessToken); }",
+                  "  if (json.refreshToken) { pm.environment.set('refreshToken', json.refreshToken); }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "Revoke refresh token. Expected: 200.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Permixa auth surface. Public. Set `ownerEmail` / `ownerPassword` locally in the environment (never commit real values)."
+    },
+    {
+      "name": "Account",
+      "item": [
+        {
+          "name": "Get me",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "me"
+              ]
+            },
+            "description": "Current user id + effective permission names. Expected: 200. 401 without Bearer."
+          },
+          "response": []
+        }
+      ],
+      "description": "Authenticated account helpers.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{accessToken}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Catalog - Categories",
+      "item": [
+        {
+          "name": "List active categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/catalog/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "catalog",
+                "categories"
+              ]
+            },
+            "description": "Storefront catalog. Active categories only. Expected: 200. Script captures first `categoryId` when present.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  if (Array.isArray(json) && json.length > 0) {",
+                  "    if (json[0].id) { pm.environment.set('categoryId', json[0].id); }",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get active category",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/catalog/categories/{{categoryId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "catalog",
+                "categories",
+                "{{categoryId}}"
+              ]
+            },
+            "description": "Expected: 200. 404 if inactive/missing.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Public catalog categories (anonymous)."
+    },
+    {
+      "name": "Catalog - Products",
+      "item": [
+        {
+          "name": "List catalog products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/catalog/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "catalog",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "categoryId",
+                  "value": "{{categoryId}}",
+                  "description": "Optional filter",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Catalog-ready products only. Expected: 200. Script may capture `productId` / first `variantId`.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  if (Array.isArray(json) && json.length > 0) {",
+                  "    if (json[0].id) { pm.environment.set('productId', json[0].id); }",
+                  "    const variants = json[0].variants;",
+                  "    if (Array.isArray(variants) && variants.length > 0 && variants[0].id) {",
+                  "      pm.environment.set('variantId', variants[0].id);",
+                  "    }",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get catalog product",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/catalog/products/{{productId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "catalog",
+                "products",
+                "{{productId}}"
+              ]
+            },
+            "description": "Product detail with variants/images. Expected: 200. 404 if not catalog-ready.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201 || pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.id) { pm.environment.set('productId', json.id); }",
+                  "  if (Array.isArray(json.variants) && json.variants.length > 0 && json.variants[0].id) {",
+                  "    pm.environment.set('variantId', json.variants[0].id);",
+                  "  }",
+                  "  if (Array.isArray(json.images) && json.images.length > 0 && json.images[0].id) {",
+                  "    pm.environment.set('productImageId', json.images[0].id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Public catalog products (anonymous)."
+    },
+    {
+      "name": "Shipping",
+      "item": [
+        {
+          "name": "List active delivery zones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/shipping/zones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "shipping",
+                "zones"
+              ]
+            },
+            "description": "Public active zones for checkout. Expected: 200. Script captures first `deliveryZoneId`.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  if (Array.isArray(json) && json.length > 0 && json[0].id) {",
+                  "    pm.environment.set('deliveryZoneId', json[0].id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": "Public shipping (anonymous)."
+    },
+    {
+      "name": "Checkout",
+      "item": [
+        {
+          "name": "Checkout preview",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/checkout/preview",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "checkout",
+                "preview"
+              ]
+            },
+            "description": "Non-persisting totals from current catalog/stock/shipping. Never trusts client money fields. Expected: 200. 400 validation. May fail minimum order / stock rules as ProblemDetails.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"variantId\": \"{{variantId}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"deliveryZoneId\": \"{{deliveryZoneId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Anonymous checkout preview."
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "Guest",
+          "item": [
+            {
+              "name": "Place guest order",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Idempotency-Key",
+                    "value": "{{idempotencyKey}}",
+                    "type": "text",
+                    "description": "Generate once per checkout attempt; reuse on retry; replace for a new order."
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/orders",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders"
+                  ]
+                },
+                "description": "Guest Place Order. Requires `Idempotency-Key` (16\u2013128 chars, high-entropy). Does **not** reserve inventory. Expected: 201 Created. Returns `guestAccessToken` once \u2014 script stores as `guestOrderToken` (never log). 409 concurrency; 400 below minimum / validation. Idempotent replay returns the same order + token.",
+                "auth": {
+                  "type": "noauth"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"items\": [\n    {\n      \"variantId\": \"{{variantId}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"deliveryZoneId\": \"{{deliveryZoneId}}\",\n  \"customerName\": \"Guest Customer\",\n  \"phone\": \"0900000000\",\n  \"addressText\": \"Aleppo sample address\",\n  \"customerNote\": \"Storefront sample note\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// Initialize once per checkout attempt. Reuse on retries; clear/replace for a new order.",
+                      "let key = pm.environment.get('idempotencyKey');",
+                      "if (!key) {",
+                      "  key = pm.variables.replaceIn('{{$guid}}');",
+                      "  pm.environment.set('idempotencyKey', key);",
+                      "}"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (pm.response.code === 201 || pm.response.code === 200) {",
+                      "  const json = pm.response.json();",
+                      "  if (json.id) { pm.environment.set('orderId', json.id); }",
+                      "  if (json.guestAccessToken) { pm.environment.set('guestOrderToken', json.guestAccessToken); }",
+                      "}"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Track guest order",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "X-Order-Token",
+                    "value": "{{guestOrderToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/orders/{{orderId}}/track",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders",
+                    "{{orderId}}",
+                    "track"
+                  ]
+                },
+                "description": "Guest tracking. Requires `X-Order-Token`. Expected: 200. Invalid/mismatched token \u2192 404 (ownership hiding) or 400 missing token.",
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Modify guest pending order",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "X-Order-Token",
+                    "value": "{{guestOrderToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/orders/{{orderId}}/items",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders",
+                    "{{orderId}}",
+                    "items"
+                  ]
+                },
+                "description": "Modify PendingConfirmation only; reprices. Expected: 200. 404 ownership hiding. 409 concurrency.",
+                "auth": {
+                  "type": "noauth"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"items\": [\n    {\n      \"variantId\": \"{{variantId}}\",\n      \"quantity\": 2\n    }\n  ],\n  \"deliveryZoneId\": \"{{deliveryZoneId}}\",\n  \"reason\": \"Customer changed quantity\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Cancel guest pending order",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "X-Order-Token",
+                    "value": "{{guestOrderToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/orders/{{orderId}}/cancel",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders",
+                    "{{orderId}}",
+                    "cancel"
+                  ]
+                },
+                "description": "Cancel own PendingConfirmation. Expected: 200. 404 ownership hiding. 409 invalid transition.",
+                "auth": {
+                  "type": "noauth"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"reason\": \"Changed mind\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            }
+          ],
+          "description": "Guest order access via `X-Order-Token: {{guestOrderToken}}`. Never put a real token in examples."
+        },
+        {
+          "name": "Authenticated customer",
+          "item": [
+            {
+              "name": "Place authenticated order",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Idempotency-Key",
+                    "value": "{{idempotencyKey}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/orders",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders"
+                  ]
+                },
+                "description": "Same Place Order contract with Bearer. Guest token usually null. Clear `idempotencyKey` before a new attempt. Expected: 201.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"items\": [\n    {\n      \"variantId\": \"{{variantId}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"deliveryZoneId\": \"{{deliveryZoneId}}\",\n  \"customerName\": \"Guest Customer\",\n  \"phone\": \"0900000000\",\n  \"addressText\": \"Aleppo sample address\",\n  \"customerNote\": \"Storefront sample note\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// Initialize once per checkout attempt. Reuse on retries; clear/replace for a new order.",
+                      "let key = pm.environment.get('idempotencyKey');",
+                      "if (!key) {",
+                      "  key = pm.variables.replaceIn('{{$guid}}');",
+                      "  pm.environment.set('idempotencyKey', key);",
+                      "}"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "if (pm.response.code === 201 || pm.response.code === 200) {",
+                      "  const json = pm.response.json();",
+                      "  if (json.id) { pm.environment.set('orderId', json.id); }",
+                      "  if (json.guestAccessToken) { pm.environment.set('guestOrderToken', json.guestAccessToken); }",
+                      "}"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "List my orders",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/orders",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders"
+                  ]
+                },
+                "description": "Authenticated customer history. Expected: 200. 401 without Bearer."
+              },
+              "response": []
+            },
+            {
+              "name": "Get my order",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/orders/{{orderId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders",
+                    "{{orderId}}"
+                  ]
+                },
+                "description": "Own order only. Expected: 200. 404 if not owned."
+              },
+              "response": []
+            },
+            {
+              "name": "Modify my pending order",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/orders/{{orderId}}/items",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders",
+                    "{{orderId}}",
+                    "items"
+                  ]
+                },
+                "description": "PendingConfirmation only. Expected: 200.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"items\": [\n    {\n      \"variantId\": \"{{variantId}}\",\n      \"quantity\": 2\n    }\n  ],\n  \"deliveryZoneId\": \"{{deliveryZoneId}}\",\n  \"reason\": \"Customer changed quantity\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Cancel my pending order",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/orders/{{orderId}}/cancel",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders",
+                    "{{orderId}}",
+                    "cancel"
+                  ]
+                },
+                "description": "PendingConfirmation only. Expected: 200.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"reason\": \"Changed mind\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            }
+          ],
+          "description": "Customer order endpoints requiring Bearer.",
+          "auth": {
+            "type": "bearer",
+            "bearer": [
+              {
+                "key": "token",
+                "value": "{{accessToken}}",
+                "type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "description": "Customer/guest Orders. Place Order requires Idempotency-Key."
+    },
+    {
+      "name": "Back Office - Categories",
+      "item": [
+        {
+          "name": "Create category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "categories"
+              ]
+            },
+            "description": "Requires `Categories.Manage`. Expected: 201. 409 duplicate name. Saves `categoryId`.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Cables\",\n  \"description\": \"Sample category\",\n  \"isActive\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201 || pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.id) { pm.environment.set('categoryId', json.id); }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "categories"
+              ]
+            },
+            "description": "All categories (incl. inactive). Expected: 200. 401/403."
+          },
+          "response": []
+        },
+        {
+          "name": "Get category",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/categories/{{categoryId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "categories",
+                "{{categoryId}}"
+              ]
+            },
+            "description": "Expected: 200. 404."
+          },
+          "response": []
+        },
+        {
+          "name": "Update category",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/categories/{{categoryId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "categories",
+                "{{categoryId}}"
+              ]
+            },
+            "description": "Expected: 200. 409 name conflict.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Cables\",\n  \"description\": \"Updated\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201 || pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.id) { pm.environment.set('categoryId', json.id); }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Activate category",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/categories/{{categoryId}}/activate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "categories",
+                "{{categoryId}}",
+                "activate"
+              ]
+            },
+            "description": "Expected: 200."
+          },
+          "response": []
+        },
+        {
+          "name": "Deactivate category",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/categories/{{categoryId}}/deactivate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "categories",
+                "{{categoryId}}",
+                "deactivate"
+              ]
+            },
+            "description": "Expected: 200."
+          },
+          "response": []
+        },
+        {
+          "name": "Upload category image",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/categories/{{categoryId}}/image",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "categories",
+                "{{categoryId}}",
+                "image"
+              ]
+            },
+            "description": "multipart field `file`. JPEG/PNG/WebP; max Media:MaxImageSizeMb (default 5). Select file in Postman UI. Expected: 200.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": [],
+                  "description": "Select a local JPEG/PNG/WebP. Max size Media:MaxImageSizeMb (default 5MB). Do not commit binary assets into the collection."
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete category image",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/categories/{{categoryId}}/image",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "categories",
+                "{{categoryId}}",
+                "image"
+              ]
+            },
+            "description": "Expected: 200. 404 if no image."
+          },
+          "response": []
+        }
+      ],
+      "description": "Requires Categories.Manage.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{accessToken}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Back Office - Products",
+      "item": [
+        {
+          "name": "Create product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products"
+              ]
+            },
+            "description": "Create with variants. `sellingUnit`: Piece|Meter. Expected: 201. 409 SKU duplicate. Saves productId + first variantId.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"NYM Cable 3x2.5\",\n  \"description\": \"Sample product\",\n  \"categoryId\": \"{{categoryId}}\",\n  \"isActive\": true,\n  \"variants\": [\n    {\n      \"name\": \"100m roll\",\n      \"sku\": \"NYM-3X25-100\",\n      \"price\": 150000,\n      \"sellingUnit\": \"Meter\",\n      \"quantityIncrement\": 1,\n      \"isActive\": true\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201 || pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.id) { pm.environment.set('productId', json.id); }",
+                  "  if (Array.isArray(json.variants) && json.variants.length > 0 && json.variants[0].id) {",
+                  "    pm.environment.set('variantId', json.variants[0].id);",
+                  "  }",
+                  "  if (Array.isArray(json.images) && json.images.length > 0 && json.images[0].id) {",
+                  "    pm.environment.set('productImageId', json.images[0].id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "categoryId",
+                  "value": "{{categoryId}}",
+                  "disabled": true
+                },
+                {
+                  "key": "isActive",
+                  "value": "true",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Expected: 200."
+          },
+          "response": []
+        },
+        {
+          "name": "Get product",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{productId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{productId}}"
+              ]
+            },
+            "description": "Expected: 200. 404."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201 || pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.id) { pm.environment.set('productId', json.id); }",
+                  "  if (Array.isArray(json.variants) && json.variants.length > 0 && json.variants[0].id) {",
+                  "    pm.environment.set('variantId', json.variants[0].id);",
+                  "  }",
+                  "  if (Array.isArray(json.images) && json.images.length > 0 && json.images[0].id) {",
+                  "    pm.environment.set('productImageId', json.images[0].id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update product",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{productId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{productId}}"
+              ]
+            },
+            "description": "Expected: 200.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"NYM Cable 3x2.5\",\n  \"description\": \"Updated\",\n  \"categoryId\": \"{{categoryId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Activate product",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{productId}}/activate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{productId}}",
+                "activate"
+              ]
+            },
+            "description": "Expected: 200."
+          },
+          "response": []
+        },
+        {
+          "name": "Deactivate product",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{productId}}/deactivate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{productId}}",
+                "deactivate"
+              ]
+            },
+            "description": "Expected: 200."
+          },
+          "response": []
+        },
+        {
+          "name": "Add variant",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{productId}}/variants",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{productId}}",
+                "variants"
+              ]
+            },
+            "description": "Expected: 200. 409 SKU duplicate. May update variantId to latest.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"50m roll\",\n  \"sku\": \"NYM-3X25-50\",\n  \"price\": 80000,\n  \"sellingUnit\": \"Meter\",\n  \"quantityIncrement\": 1,\n  \"isActive\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  if (Array.isArray(json.variants) && json.variants.length > 0) {",
+                  "    const last = json.variants[json.variants.length - 1];",
+                  "    if (last && last.id) { pm.environment.set('variantId', last.id); }",
+                  "  } else if (json.id && json.sku) {",
+                  "    pm.environment.set('variantId', json.id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update variant",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{productId}}/variants/{{variantId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{productId}}",
+                "variants",
+                "{{variantId}}"
+              ]
+            },
+            "description": "Expected: 200. 409 SKU conflict.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"100m roll\",\n  \"sku\": \"NYM-3X25-100\",\n  \"price\": 155000,\n  \"sellingUnit\": \"Meter\",\n  \"quantityIncrement\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Activate variant",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{productId}}/variants/{{variantId}}/activate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{productId}}",
+                "variants",
+                "{{variantId}}",
+                "activate"
+              ]
+            },
+            "description": "Expected: 200."
+          },
+          "response": []
+        },
+        {
+          "name": "Deactivate variant",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{productId}}/variants/{{variantId}}/deactivate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{productId}}",
+                "variants",
+                "{{variantId}}",
+                "deactivate"
+              ]
+            },
+            "description": "Expected: 200."
+          },
+          "response": []
+        },
+        {
+          "name": "Upload product image",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{productId}}/images",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{productId}}",
+                "images"
+              ]
+            },
+            "description": "multipart field `file`. JPEG/PNG/WebP \u2264 Media:MaxImageSizeMb. Select file in Postman. Expected: 200. Saves productImageId.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": [],
+                  "description": "Select a local JPEG/PNG/WebP. Max size Media:MaxImageSizeMb (default 5MB). Do not commit binary assets into the collection."
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  if (Array.isArray(json.images) && json.images.length > 0) {",
+                  "    const last = json.images[json.images.length - 1];",
+                  "    if (last && last.id) { pm.environment.set('productImageId', last.id); }",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Set primary product image",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{productId}}/images/{{productImageId}}/primary",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{productId}}",
+                "images",
+                "{{productImageId}}",
+                "primary"
+              ]
+            },
+            "description": "Expected: 200."
+          },
+          "response": []
+        },
+        {
+          "name": "Reorder product images",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{productId}}/images/order",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{productId}}",
+                "images",
+                "order"
+              ]
+            },
+            "description": "Expected: 200. Include all image ids in desired order.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderedImageIds\": [\n    \"{{productImageId}}\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete product image",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/products/{{productId}}/images/{{productImageId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "products",
+                "{{productId}}",
+                "images",
+                "{{productImageId}}"
+              ]
+            },
+            "description": "Expected: 200. 404."
+          },
+          "response": []
+        }
+      ],
+      "description": "Requires Products.Manage.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{accessToken}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Back Office - Inventory",
+      "item": [
+        {
+          "name": "List inventory",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/inventory",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "inventory"
+              ],
+              "query": [
+                {
+                  "key": "productId",
+                  "value": "{{productId}}",
+                  "disabled": true
+                },
+                {
+                  "key": "categoryId",
+                  "value": "{{categoryId}}",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "inStock",
+                  "value": "true",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Requires Inventory.Read. Expected: 200."
+          },
+          "response": []
+        },
+        {
+          "name": "Get inventory by variant",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/inventory/{{variantId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "inventory",
+                "{{variantId}}"
+              ]
+            },
+            "description": "Missing row treated as zero stock. Expected: 200."
+          },
+          "response": []
+        },
+        {
+          "name": "List adjustments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/inventory/{{variantId}}/adjustments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "inventory",
+                "{{variantId}}",
+                "adjustments"
+              ]
+            },
+            "description": "Durable InventoryAdjustment audit. Expected: 200."
+          },
+          "response": []
+        },
+        {
+          "name": "Adjust inventory",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/inventory/{{variantId}}/adjust",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "inventory",
+                "{{variantId}}",
+                "adjust"
+              ]
+            },
+            "description": "Requires Inventory.Adjust. Expected: 200. 409 concurrency.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantityDelta\": 100,\n  \"reason\": \"Initial stock\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Inventory.Read / Inventory.Adjust.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{accessToken}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Back Office - Shipping",
+      "item": [
+        {
+          "name": "Create delivery zone",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/shipping/zones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "shipping",
+                "zones"
+              ]
+            },
+            "description": "Requires Shipping.Manage. Expected: 201. Saves deliveryZoneId.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Aleppo Center\",\n  \"fee\": 5000,\n  \"isActive\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201 || pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.id) { pm.environment.set('deliveryZoneId', json.id); }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List delivery zones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/shipping/zones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "shipping",
+                "zones"
+              ]
+            },
+            "description": "Expected: 200."
+          },
+          "response": []
+        },
+        {
+          "name": "Get delivery zone",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/shipping/zones/{{deliveryZoneId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "shipping",
+                "zones",
+                "{{deliveryZoneId}}"
+              ]
+            },
+            "description": "Expected: 200. 404."
+          },
+          "response": []
+        },
+        {
+          "name": "Update delivery zone",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/shipping/zones/{{deliveryZoneId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "shipping",
+                "zones",
+                "{{deliveryZoneId}}"
+              ]
+            },
+            "description": "Expected: 200.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Aleppo Center\",\n  \"fee\": 5500\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201 || pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.id) { pm.environment.set('deliveryZoneId', json.id); }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Activate delivery zone",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/shipping/zones/{{deliveryZoneId}}/activate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "shipping",
+                "zones",
+                "{{deliveryZoneId}}",
+                "activate"
+              ]
+            },
+            "description": "Expected: 200."
+          },
+          "response": []
+        },
+        {
+          "name": "Deactivate delivery zone",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/shipping/zones/{{deliveryZoneId}}/deactivate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "shipping",
+                "zones",
+                "{{deliveryZoneId}}",
+                "deactivate"
+              ]
+            },
+            "description": "Expected: 200."
+          },
+          "response": []
+        }
+      ],
+      "description": "Requires Shipping.Manage.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{accessToken}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Back Office - Settings",
+      "item": [
+        {
+          "name": "Get ordering settings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/settings/ordering",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "settings",
+                "ordering"
+              ]
+            },
+            "description": "Requires Settings.Manage. Returns minimumMerchandiseSubtotal. Expected: 200."
+          },
+          "response": []
+        },
+        {
+          "name": "Update ordering settings",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/settings/ordering",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "settings",
+                "ordering"
+              ]
+            },
+            "description": "Persisted singleton used by Preview/Place. Expected: 200. 400 validation.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"minimumMerchandiseSubtotal\": 10000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Requires Settings.Manage.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{accessToken}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Back Office - Orders",
+      "item": [
+        {
+          "name": "List orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "PendingConfirmation",
+                  "disabled": true
+                },
+                {
+                  "key": "paymentStatus",
+                  "value": "Unpaid",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "createdFromUtc",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "createdToUtc",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Requires Orders.Read. Filter enums: PendingConfirmation|Confirmed|Preparing|OutForDelivery|Delivered|Cancelled; Unpaid|Paid."
+          },
+          "response": []
+        },
+        {
+          "name": "Get order",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{orderId}}"
+              ]
+            },
+            "description": "Includes modificationAudits when present. Expected: 200. 404."
+          },
+          "response": []
+        },
+        {
+          "name": "Confirm order (reserve)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderId}}/confirm",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{orderId}}",
+                "confirm"
+              ]
+            },
+            "description": "Atomic reserve. Requires Orders.Manage. Expected: 200. 409 insufficient stock / concurrency / invalid transition."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201 || pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.id) { pm.environment.set('orderId', json.id); }",
+                  "  if (json.guestAccessToken) { pm.environment.set('guestOrderToken', json.guestAccessToken); }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Prepare order",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderId}}/prepare",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{orderId}}",
+                "prepare"
+              ]
+            },
+            "description": "Confirmed \u2192 Preparing. Expected: 200. 409 invalid transition."
+          },
+          "response": []
+        },
+        {
+          "name": "Out for delivery",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderId}}/out-for-delivery",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{orderId}}",
+                "out-for-delivery"
+              ]
+            },
+            "description": "Dispatches reserved stock. Expected: 200. 409."
+          },
+          "response": []
+        },
+        {
+          "name": "Deliver order",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderId}}/deliver",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{orderId}}",
+                "deliver"
+              ]
+            },
+            "description": "Expected: 200. 409."
+          },
+          "response": []
+        },
+        {
+          "name": "Mark paid",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderId}}/mark-paid",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{orderId}}",
+                "mark-paid"
+              ]
+            },
+            "description": "COD only when OutForDelivery or Delivered. Expected: 200. 409 already paid / invalid transition."
+          },
+          "response": []
+        },
+        {
+          "name": "Admin cancel order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderId}}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{orderId}}",
+                "cancel"
+              ]
+            },
+            "description": "Reason required. Releases reservation when Confirmed/Preparing. Expected: 200. 409.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Staff cancelled \\u2014 sample\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Admin modify pending order",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/orders/{{orderId}}/items",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "orders",
+                "{{orderId}}",
+                "items"
+              ]
+            },
+            "description": "PendingConfirmation only; writes OrderModificationAudit. Expected: 200.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"variantId\": \"{{variantId}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"deliveryZoneId\": \"{{deliveryZoneId}}\",\n  \"reason\": \"Staff correction\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Orders.Read / Orders.Manage. Lifecycle: Confirm \u2192 Prepare \u2192 OutForDelivery \u2192 Deliver; MarkPaid when allowed.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{accessToken}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Back Office - Access Management",
+      "item": [
+        {
+          "name": "List users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/access/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "access",
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "isDisabled",
+                  "value": "false",
+                  "disabled": true
+                },
+                {
+                  "key": "isLocked",
+                  "value": "false",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Iam.Users.Read. Hierarchically manageable users only (Owner typically excluded). Expected: 200. 403 hierarchy."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  const items = json.items || json;",
+                  "  if (Array.isArray(items) && items.length > 0 && items[0].id) {",
+                  "    pm.environment.set('userId', items[0].id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get user IAM details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/access/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "access",
+                "users",
+                "{{userId}}"
+              ]
+            },
+            "description": "Effective permissions with source provenance. Self \u2192 CannotManageSelf. Expected: 200. 403/404."
+          },
+          "response": []
+        },
+        {
+          "name": "Get user effective permissions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/access/users/{{userId}}/permissions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "access",
+                "users",
+                "{{userId}}",
+                "permissions"
+              ]
+            },
+            "description": "Same provenance projection. Expected: 200."
+          },
+          "response": []
+        },
+        {
+          "name": "Set user roles",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/access/users/{{userId}}/roles",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "access",
+                "users",
+                "{{userId}}",
+                "roles"
+              ]
+            },
+            "description": "Iam.UserRoles.Manage. Replaces assignments. Expected: 200. 403 hierarchy.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roleIds\": [\n    \"{{roleId}}\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Set user permission override",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/access/users/{{userId}}/permissions/{{permissionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "access",
+                "users",
+                "{{userId}}",
+                "permissions",
+                "{{permissionId}}"
+              ]
+            },
+            "description": "Iam.UserPermissionOverrides.Manage. Effect: Allow|Deny. Expected: 200.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"effect\": \"Allow\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Remove user permission override",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/access/users/{{userId}}/permissions/{{permissionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "access",
+                "users",
+                "{{userId}}",
+                "permissions",
+                "{{permissionId}}"
+              ]
+            },
+            "description": "Inherit again. Expected: 204."
+          },
+          "response": []
+        },
+        {
+          "name": "List roles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/access/roles",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "access",
+                "roles"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Iam.Roles.Read. Manageable + actor's own (Owner reference). Saves roleId/referenceRoleId."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  if (Array.isArray(json) && json.length > 0 && json[0].id) {",
+                  "    pm.environment.set('roleId', json[0].id);",
+                  "    pm.environment.set('referenceRoleId', json[0].id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get my roles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/access/me/roles",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "access",
+                "me",
+                "roles"
+              ]
+            },
+            "description": "Current actor roles (hierarchy reference). Expected: 200."
+          },
+          "response": []
+        },
+        {
+          "name": "Get role",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/access/roles/{{roleId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "access",
+                "roles",
+                "{{roleId}}"
+              ]
+            },
+            "description": "Role + granted permissions. Expected: 200."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201 || pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.id) { pm.environment.set('roleId', json.id); }",
+                  "  else if (json.role && json.role.id) { pm.environment.set('roleId', json.role.id); }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create role",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/access/roles",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "access",
+                "roles"
+              ]
+            },
+            "description": "Iam.Roles.Create. Placement: Above|Below|SameLevel. Expected: 201. Saves roleId.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Staff\",\n  \"referenceRoleId\": \"{{referenceRoleId}}\",\n  \"placement\": \"Below\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201 || pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.id) { pm.environment.set('roleId', json.id); }",
+                  "  else if (json.role && json.role.id) { pm.environment.set('roleId', json.role.id); }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update role",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/access/roles/{{roleId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "access",
+                "roles",
+                "{{roleId}}"
+              ]
+            },
+            "description": "Iam.Roles.Update. Name and/or ReferenceRoleId+Placement. Expected: 200.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Staff\",\n  \"referenceRoleId\": \"{{referenceRoleId}}\",\n  \"placement\": \"Below\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Set role permissions",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/access/roles/{{roleId}}/permissions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "access",
+                "roles",
+                "{{roleId}}",
+                "permissions"
+              ]
+            },
+            "description": "Iam.RolePermissions.Manage. Replaces grants. Expected: 200.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"permissionIds\": [\n    \"{{permissionId}}\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete role",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/access/roles/{{roleId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "access",
+                "roles",
+                "{{roleId}}"
+              ]
+            },
+            "description": "Iam.Roles.Delete when Permixa allows (no users/permissions; Owner protected). Expected: 204."
+          },
+          "response": []
+        },
+        {
+          "name": "List permissions catalog",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/access/permissions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "access",
+                "permissions"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Iam.Permissions.Read. Grouped by name prefix. Saves first permissionId."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  if (Array.isArray(json.groups) && json.groups.length > 0) {",
+                  "    const g = json.groups[0];",
+                  "    if (Array.isArray(g.permissions) && g.permissions.length > 0 && g.permissions[0].id) {",
+                  "      pm.environment.set('permissionId', g.permissions[0].id);",
+                  "    }",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List IAM audit",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/access/audit",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "access",
+                "audit"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20",
+                  "disabled": true
+                },
+                {
+                  "key": "actorUserId",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "targetUserId",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "eventType",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Iam.Audit.Read. Permixa durable IAM audit. Expected: 200."
+          },
+          "response": []
+        }
+      ],
+      "description": "Thin `/admin/access` adapters over Permixa. No deferred user create/lock/session routes. RoleLevel: lower int = higher authority.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{accessToken}}",
+            "type": "string"
+          }
+        ]
+      }
+    }
+  ]
+}
