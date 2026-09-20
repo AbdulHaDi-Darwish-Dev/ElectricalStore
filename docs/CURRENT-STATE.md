@@ -57,16 +57,17 @@
 15. ~~Frontend F4 frontend-only cart~~ **done** (Zustand + localStorage; min-qty decrement disabled; badge hides zero)
 16. ~~Frontend F5 guest checkout~~ **done** (Preview + Place Order BFF; HttpOnly guest cookie; same-origin place)
 17. ~~Frontend F6.0 trusted ForwardedHeaders host~~ **done** (`db173a0`; Production fail-safe `Enabled=false`)
-18. Frontend F6 Auth + customer account — **local implementation in review** (production auth go-live still gated)
+18. ~~Frontend F6 Auth + customer account~~ **done** (`b66c5ea`; local Auth; production Auth go-live still gated)
+19. Frontend F7 Admin foundation — **in review** (shell/nav/gates only; no business CRUD)
 
 ### Authentication readiness gate
 
 | Surface | Status |
 |---------|--------|
-| **Local Auth** | Ready to develop/test (Dev ForwardedHeaders trusts loopback; Next login BFF forwards a non-spoofed local identity) |
-| **Production Auth deployment** | **BLOCKED** until trusted ingress + sanitized client IP + explicit `KnownProxies`/`KnownNetworks` + verified `RemoteIpAddress` before RateLimiter |
+| **Local Auth** | Ready (Dev ForwardedHeaders trusts loopback; Login BFF forwards `127.0.0.1` only) |
+| **Production Auth / Admin go-live** | **BLOCKED** until trusted ingress + sanitized client IP + explicit `KnownProxies`/`KnownNetworks` + verified `RemoteIpAddress` before RateLimiter |
 
-Do **not** describe F6 Auth as production-ready. Keep Production `ForwardedHeaders:Enabled=false` until ops configures trust.
+Do **not** describe F6/F7 as production-ready. Keep Production `ForwardedHeaders:Enabled=false` until ops configures trust.
 
 
 ## Access Management (Dashboard IAM)

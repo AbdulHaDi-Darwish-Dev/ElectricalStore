@@ -90,6 +90,18 @@ Routes: `/checkout`, `/orders/[id]/confirmation` (non-indexable).
 - Idempotency-Key in **sessionStorage** as `{ key, fingerprint }` (SHA-256; no plaintext PII); new key when payload changes
 - Cart clears **only** after successful HTTP 201
 
+## Customer auth + account (F6)
+
+- Access token: memory only; refresh: HttpOnly `electricalstore.auth.refresh`
+- Routes: `/login`, `/register`, `/account`, `/account/orders`
+- Production Auth go-live still gated (trusted ingress) — see `docs/TRUSTED-CLIENT-IP.md`
+
+## Admin foundation (F7)
+
+- Protected `/admin` shell; permission-aware nav; no business CRUD yet
+- Details: [`docs/ADMIN.md`](docs/ADMIN.md)
+- Authorize by effective permission codes only — never role names
+
 ## Scripts
 
 ```bash
@@ -105,23 +117,28 @@ npm run build
 | Path | Role |
 |---|---|
 | `src/app/(storefront)` | Public storefront routes |
-| `src/app/admin` | Back-office shell |
-| `src/components/shared` | Layout shells |
-| `src/config` | Brand, site, store (currency), navigation |
+| `src/app/admin` | Back-office shell (F7 foundation) |
+| `src/components/admin` | Admin shell / gates / primitives |
+| `src/components/shared` | Storefront layout shells |
+| `src/config` | Brand, site, store (currency), storefront navigation |
 | `src/lib/api` | Fetch + ProblemDetails + query helpers |
-| `src/lib/auth` | Reserved — auth not implemented |
+| `src/lib/auth` | Session, refresh coordinator, permission helpers |
+| `src/features/admin` | Admin permission catalog + nav + query conventions |
 | `src/features/catalog` | Public catalog DTOs + API |
 | `src/features/cart` | Frontend-only cart (Zustand + persistence) |
-| `src/features/orders` | Place Order / Order DTOs + guest BFF clients |
+| `src/features/orders` | Place Order / Order DTOs + guest/customer clients |
 | `src/features/shipping` | Public shipping DTOs + API |
 | `src/features/checkout` | Preview + form schema + idempotency helpers |
+| `src/features/auth` | Login/register schemas + register API |
 | `src/components/cart` | Cart badge, add-to-cart, cart page UI |
 | `src/components/checkout` | Checkout page UI |
 | `src/components/orders` | Order confirmation UI |
 | `src/components/storefront` | Catalog presentation components |
+| `src/app/api/auth` | Login/refresh/logout cookie BFF |
 | `src/app/api/guest-orders` | HttpOnly guest-token security handlers |
 
 ## Dev URLs
 
 - Frontend: `http://localhost:3000`
 - API: `http://localhost:5080`
+- Local launcher (repo root): `.\dev.ps1` / `.\stop-dev.ps1`
