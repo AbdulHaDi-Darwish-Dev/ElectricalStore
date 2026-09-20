@@ -12,15 +12,20 @@ cd E:\ElectricalStore
 
 This opens the API and Next.js storefront in separate windows:
 
-- Backend: http://localhost:5080
-- Health: http://localhost:5080/health
-- Frontend: http://localhost:3000
+- Frontend: http://localhost:3100
+- Admin: http://localhost:3100/admin
+- Backend: http://localhost:5180
+- Health: http://localhost:5180/health
 
 Stop both (only processes started by the launcher):
 
 ```powershell
 .\stop-dev.ps1
 ```
+
+Re-running `.\dev.ps1` safely restarts launcher-owned previous processes first.
+
+**One backend owner at a time:** use either `.\dev.ps1` **or** Visual Studio debugging — not both (they share port 5180).
 
 Or start the API alone:
 

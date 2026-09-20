@@ -39,7 +39,7 @@ Consumer ASP.NET Core app using Permixa NuGet IAM. Clean Architecture host.
 - **Cart is frontend-only** — no backend Cart persistence; Checkout/Orders revalidate and persist Orders only
 - Place Order does **not** reserve stock; Admin Confirm reserves atomically; OutForDelivery dispatches OnHand+Reserved
 - Guest order token: store hash only; raw token once; `X-Order-Token` for guest access; never log raw token
-- CORS: `Cors:AllowedOrigins` config only (Dev includes `http://localhost:3000`); no AllowAnyOrigin; no AllowCredentials; expose `Retry-After`
+- CORS: `Cors:AllowedOrigins` config only (Dev includes `http://localhost:3100`); no AllowAnyOrigin; no AllowCredentials; expose `Retry-After`
 - Cloudinary lives only in Infrastructure behind `IImageStorage`; Domain/Application use provider-neutral `StorageKey`
 - `Media:MaxImageSizeMb` (default 5) + allowed content types are central upload validation only
 - No Variant images; no generic media platform in MVP

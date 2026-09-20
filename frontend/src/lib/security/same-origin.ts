@@ -7,11 +7,11 @@ export function getExpectedSiteOrigin(): string {
   const raw =
     process.env.SITE_URL ??
     process.env.NEXT_PUBLIC_SITE_URL ??
-    "http://localhost:3000";
+    "http://localhost:3100";
   try {
     return new URL(raw).origin;
   } catch {
-    return "http://localhost:3000";
+    return "http://localhost:3100";
   }
 }
 

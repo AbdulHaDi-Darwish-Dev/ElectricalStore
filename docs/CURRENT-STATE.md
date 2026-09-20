@@ -35,7 +35,7 @@
 | Data Protection | Keys persisted to `DataProtection:KeysPath` or `{BaseDirectory}/dp-keys` (required for guest idempotency Unprotect across restarts) |
 | Operational logging | Built-in `ILogger` + JSON console (Production); request middleware; Order/Inventory Information logs; no bodies/secrets/PII |
 | Postman contract | `docs/postman/ElectricalStore.postman_collection.json` + Local environment (frontend-ready) |
-| CORS | Config-driven `Cors:AllowedOrigins` (Dev: `http://localhost:3000`); methods GET/POST/PUT/DELETE/OPTIONS; headers Authorization, Content-Type, Idempotency-Key, X-Order-Token; expose Retry-After; **no** AllowAnyOrigin / **no** AllowCredentials |
+| CORS | Config-driven `Cors:AllowedOrigins` (Dev: `http://localhost:3100`); methods GET/POST/PUT/DELETE/OPTIONS; headers Authorization, Content-Type, Idempotency-Key, X-Order-Token; expose Retry-After; **no** AllowAnyOrigin / **no** AllowCredentials |
 | Verified tests | **162/162** Release (Domain 48, Application 45, Infrastructure 17, Integration 52) |
 
 ## Next work (backend sequence)

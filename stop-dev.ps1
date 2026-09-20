@@ -1,5 +1,7 @@
 # Stop processes started by .\dev.ps1 for this repository only.
+# Official ports: API 5180 / Frontend 3100
 # Usage (from repo root): .\stop-dev.ps1
+# Does NOT kill unrelated processes occupying those ports.
 
 $ErrorActionPreference = "Continue"
 $RepoRoot = $PSScriptRoot
@@ -42,7 +44,8 @@ Write-Host "ElectricalStore local stop" -ForegroundColor Cyan
 
 if (-not (Test-Path -LiteralPath $StateFile)) {
     Write-Host "No .dev-processes.json found - nothing tracked by the launcher to stop." -ForegroundColor DarkYellow
-    Write-Host "If ports are still busy, inspect PIDs manually (do not kill unrelated machine processes)." -ForegroundColor DarkYellow
+    Write-Host "If ports 5180/3100 are still busy, inspect PIDs manually (do not kill unrelated machine processes)." -ForegroundColor DarkYellow
+    Write-Host "If Visual Studio owns the API, stop that debug session separately." -ForegroundColor DarkYellow
     exit 0
 }
 
@@ -51,11 +54,19 @@ try {
 }
 catch {
     Write-Host ("ERROR: Could not read .dev-processes.json: {0}" -f $_) -ForegroundColor Red
+    Write-Host "Removing unreadable state file." -ForegroundColor DarkYellow
+    Remove-Item -LiteralPath $StateFile -Force -ErrorAction SilentlyContinue
     exit 1
 }
 
-$apiShellPid = [int]($state.apiShellPid)
-$frontendShellPid = [int]($state.frontendShellPid)
+$apiShellPid = 0
+$frontendShellPid = 0
+if ($null -ne $state.apiShellPid) {
+    [void][int]::TryParse([string]$state.apiShellPid, [ref]$apiShellPid)
+}
+if ($null -ne $state.frontendShellPid) {
+    [void][int]::TryParse([string]$state.frontendShellPid, [ref]$frontendShellPid)
+}
 
 Write-Host "Stopping launcher-tracked shells only:"
 Stop-TrackedTree -ProcessId $apiShellPid -Label "API shell"

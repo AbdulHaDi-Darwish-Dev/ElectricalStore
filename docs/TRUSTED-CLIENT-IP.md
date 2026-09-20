@@ -22,10 +22,11 @@ This repository does **not** define production ingress:
 
 **Local Development (documented):**
 
-- API: `http://localhost:5080` (Kestrel)
-- Frontend: `http://localhost:3000`
+- API: `http://localhost:5180` (Kestrel)
+- Frontend: `http://localhost:3100`
 - Browser may call the API directly (`NEXT_PUBLIC_API_BASE_URL`) under scoped CORS
-- Future auth BFF: Browser → Next → `API_BASE_URL` (server-side)
+- Auth BFF: Browser → Next → `API_BASE_URL` (server-side)
+- Launcher: `.\dev.ps1` / `.\stop-dev.ps1` — dedicated ports; one API owner at a time (launcher **or** Visual Studio)
 
 **Production topology:** **not specified in-repo.** Operators must choose and document one before enabling production ForwardedHeaders.
 

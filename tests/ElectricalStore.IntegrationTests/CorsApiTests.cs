@@ -5,12 +5,12 @@ using Xunit;
 namespace ElectricalStore.IntegrationTests;
 
 /// <summary>
-/// Focused CORS contract checks for the approved Next.js origin (http://localhost:3000).
+/// Focused CORS contract checks for the approved Next.js origin (http://localhost:3100).
 /// Relies on Development <c>Cors:AllowedOrigins</c> via <see cref="AppWebApplicationFactory"/>.
 /// </summary>
 public sealed class CorsApiTests : IClassFixture<AppWebApplicationFactory>
 {
-    private const string AllowedOrigin = "http://localhost:3000";
+    private const string AllowedOrigin = "http://localhost:3100";
     private const string DisallowedOrigin = "http://evil.example";
 
     private readonly AppWebApplicationFactory _factory;

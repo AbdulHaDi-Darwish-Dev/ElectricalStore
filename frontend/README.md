@@ -10,7 +10,7 @@ Arabic-first / RTL-first Next.js App Router foundation for Storefront + Back Off
 - **Native fetch** (`src/lib/api`) — no Axios, no generated OpenAPI SDK
 - **TanStack Query** for browser server-state later (not for public SSR catalog)
 - **Zustand / React Hook Form / Zod** installed; cart and forms not built yet
-- **ASP.NET Core** remains the business backend (`http://localhost:5080`)
+- **ASP.NET Core** remains the business backend (`http://localhost:5180`)
 
 ## Arabic / RTL
 
@@ -146,6 +146,8 @@ npm run build
 
 ## Dev URLs
 
-- Frontend: `http://localhost:3000`
-- API: `http://localhost:5080`
-- Local launcher (repo root): `.\dev.ps1` / `.\stop-dev.ps1`
+- Frontend: `http://localhost:3100`
+- Admin: `http://localhost:3100/admin`
+- API: `http://localhost:5180`
+- Health: `http://localhost:5180/health`
+- Local launcher (repo root): `.\dev.ps1` / `.\stop-dev.ps1` (dedicated ports; one API owner at a time)

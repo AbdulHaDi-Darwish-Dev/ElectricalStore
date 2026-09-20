@@ -21,19 +21,26 @@ dotnet run --project src/ElectricalStore.Api
 The PowerShell script is **idempotent**: it preserves existing JWT keys and Owner password unless you pass `-RotateJwt` or `-RotateOwnerPassword`.  
 If it generates a new Owner password, it prints that password **once** — store it locally; it is never committed.
 
-### Normal daily start
+### Normal daily start / restart
 
 ```powershell
 cd E:\ElectricalStore
 .\dev.ps1
 ```
 
-Opens API + frontend in separate PowerShell windows (ports **5080** / **3000**). Uses `npm.cmd` for the frontend (avoids blocked `npm.ps1` under ExecutionPolicy).
+Opens API + frontend in separate PowerShell windows on **dedicated** ports (**5180** / **3100**). Re-running `.\dev.ps1` stops previous launcher-owned shells first, then starts fresh. Uses `npm.cmd` for the frontend (avoids blocked `npm.ps1` under ExecutionPolicy). Next is pinned to port **3100** (no silent fallback to 3101).
 
-- Backend: http://localhost:5080  
-- Health: http://localhost:5080/health  
-- Frontend: http://localhost:3000  
-- Swagger: http://localhost:5080/swagger  
+Official local URLs:
+
+- Frontend: http://localhost:3100  
+- Admin: http://localhost:3100/admin  
+- Backend: http://localhost:5180  
+- Health: http://localhost:5180/health  
+- Swagger: http://localhost:5180/swagger  
+
+**One backend owner at a time:** `.\dev.ps1` **or** Visual Studio — not both. Both use port 5180.
+
+Frontend env: copy `frontend/.env.example` → `frontend/.env.local` (gitignored) if you need overrides. Defaults in code already match 5180/3100.
 
 Stop launcher-tracked processes only:
 
@@ -41,13 +48,15 @@ Stop launcher-tracked processes only:
 .\stop-dev.ps1
 ```
 
+If ports are busy after stop and Visual Studio (or another tool) owns them, stop that session manually — the scripts will not kill unrelated processes.
+
 API alone (without the storefront):
 
 ```powershell
 dotnet run --project src/ElectricalStore.Api --launch-profile http
 ```
 
-Swagger: http://localhost:5080/swagger
+Swagger: http://localhost:5180/swagger
 
 ## Postman / Frontend API Contract
 
@@ -59,7 +68,7 @@ Executable collection for Storefront + Back Office integration (frozen backend s
 | Environment | [`docs/postman/ElectricalStore.Local.postman_environment.json`](postman/ElectricalStore.Local.postman_environment.json) |
 
 1. Import both into Postman.
-2. Select **ElectricalStore Local**; set `baseUrl` (default `http://localhost:5080`).
+2. Select **ElectricalStore Local**; set `baseUrl` (default `http://localhost:5180`).
 3. Set `ownerEmail` / `ownerPassword` from your local user-secrets / setup output — leave empty in git; never commit real values.
 4. **Login** stores `accessToken`, `refreshToken`, and `userId` into the environment (scripts never `console.log` tokens).
 5. Authenticated requests use collection Bearer `{{accessToken}}`. Public catalog/checkout/guest requests are explicitly unauthenticated.

@@ -6,7 +6,7 @@ import { brand } from "./brand";
  */
 export const site = {
   /** Absolute site origin for metadata / canonical URLs. */
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3100",
   locale: "ar",
   htmlLang: "ar",
   dir: "rtl" as const,
