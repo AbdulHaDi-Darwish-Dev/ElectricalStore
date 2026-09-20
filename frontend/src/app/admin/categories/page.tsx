@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { AdminFeaturePlaceholder } from "@/components/admin";
-import { categoriesManageCodes } from "@/features/admin";
+import { Suspense } from "react";
+import { AdminLoadingState } from "@/components/admin";
+import { CategoriesListView } from "@/components/admin-categories";
 
 export const metadata: Metadata = {
   title: "التصنيفات",
@@ -9,11 +10,8 @@ export const metadata: Metadata = {
 
 export default function AdminCategoriesPage() {
   return (
-    <AdminFeaturePlaceholder
-      title="التصنيفات"
-      featureLabel="التصنيفات"
-      anyOf={categoriesManageCodes}
-      description="إدارة تصنيفات الكتالوج العام."
-    />
+    <Suspense fallback={<AdminLoadingState label="جاري تحميل التصنيفات…" />}>
+      <CategoriesListView />
+    </Suspense>
   );
 }

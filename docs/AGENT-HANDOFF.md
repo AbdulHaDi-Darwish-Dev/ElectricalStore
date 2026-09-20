@@ -51,4 +51,4 @@ Consumer ASP.NET Core app using Permixa NuGet IAM. Clean Architecture host.
 
 ## Current / next
 
-See [CURRENT-STATE.md](CURRENT-STATE.md). Frontend F1–F6 done locally; F7 Admin foundation in review. **Production Auth/Admin go-live remains BLOCKED** until trusted ingress + KnownProxies/Networks (`docs/TRUSTED-CLIENT-IP.md`). Admin UX uses effective `permissions[]` only — never role names.
+See [CURRENT-STATE.md](CURRENT-STATE.md). Frontend F1–F7 done locally; F7.1 Admin Categories in review. **Production Auth/Admin go-live remains BLOCKED** until trusted ingress + KnownProxies/Networks (`docs/TRUSTED-CLIENT-IP.md`). Admin UX uses effective `permissions[]` only — never role names.

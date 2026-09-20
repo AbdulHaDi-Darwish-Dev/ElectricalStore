@@ -1,4 +1,4 @@
-# Admin foundation (F7)
+# Admin foundation (F7+)
 
 > Permission-aware Admin shell. Backend remains the authorization authority.
 
@@ -17,7 +17,7 @@ See `src/features/admin/permission-catalog.ts` — codes must match ASP.NET / Pe
 
 `src/features/admin/navigation.ts` — items are **omitted** when unauthorized (not merely disabled).
 
-## Query conventions (future features)
+## Query conventions
 
 See `src/features/admin/query-conventions.ts`:
 
@@ -27,11 +27,24 @@ See `src/features/admin/query-conventions.ts`:
 - Never persist Admin caches to localStorage
 - `403` → Access Denied UX; do not refresh-loop
 
+## Categories (F7.1) — reference CRUD pattern
+
+Feature-owned under `src/features/admin-categories/` + `src/components/admin-categories/`.
+
+- Permission: `Categories.Manage`
+- Routes: `/admin/categories`, `/admin/categories/new`, `/admin/categories/[id]`
+- Query keys: `adminCategoryKeys` (`["admin","categories",...]`)
+- Mutations: create / update / activate / deactivate / image upsert / image delete
+- **No category hard-delete** — backend has activate/deactivate only
+- Image: separate `PUT|DELETE /admin/categories/{id}/image` (multipart `file`)
+- After success: invalidate `adminCategoryKeys.all()` (list + details)
+- Public catalog ISR may lag Admin changes by up to **60 seconds** (existing revalidate) — no cache-tag busting in F7.1
+
 ## Phase boundaries
 
-F7: shell, nav, gates, dashboard shortcuts, placeholders only.
-
-Later: Category/Product/Inventory/Orders/Shipping/Settings/IAM CRUD.
+- F7: shell, nav, gates, dashboard shortcuts
+- F7.1: Admin Categories management (reference pattern)
+- Later: Product / Inventory / Orders / Shipping / Settings / IAM CRUD
 
 ## Production gate
 

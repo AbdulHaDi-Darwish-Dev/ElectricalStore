@@ -96,9 +96,10 @@ Routes: `/checkout`, `/orders/[id]/confirmation` (non-indexable).
 - Routes: `/login`, `/register`, `/account`, `/account/orders`
 - Production Auth go-live still gated (trusted ingress) — see `docs/TRUSTED-CLIENT-IP.md`
 
-## Admin foundation (F7)
+## Admin foundation (F7 / F7.1)
 
-- Protected `/admin` shell; permission-aware nav; no business CRUD yet
+- Protected `/admin` shell; permission-aware nav
+- **Categories management (F7.1)** — reference Admin CRUD pattern (`features/admin-categories`)
 - Details: [`docs/ADMIN.md`](docs/ADMIN.md)
 - Authorize by effective permission codes only — never role names
 
@@ -117,13 +118,15 @@ npm run build
 | Path | Role |
 |---|---|
 | `src/app/(storefront)` | Public storefront routes |
-| `src/app/admin` | Back-office shell (F7 foundation) |
+| `src/app/admin` | Back-office routes |
 | `src/components/admin` | Admin shell / gates / primitives |
+| `src/components/admin-categories` | Admin Categories UI (F7.1) |
 | `src/components/shared` | Storefront layout shells |
 | `src/config` | Brand, site, store (currency), storefront navigation |
 | `src/lib/api` | Fetch + ProblemDetails + query helpers |
 | `src/lib/auth` | Session, refresh coordinator, permission helpers |
 | `src/features/admin` | Admin permission catalog + nav + query conventions |
+| `src/features/admin-categories` | Admin Categories API / keys / schema |
 | `src/features/catalog` | Public catalog DTOs + API |
 | `src/features/cart` | Frontend-only cart (Zustand + persistence) |
 | `src/features/orders` | Place Order / Order DTOs + guest/customer clients |
