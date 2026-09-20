@@ -1,5 +1,11 @@
-export { getApiBaseUrl, joinApiUrl } from "./config";
+export {
+  getApiBaseUrl,
+  getBrowserApiBaseUrl,
+  getServerApiBaseUrl,
+  joinApiUrl,
+} from "./config";
 export { apiFetch, type ApiFetchOptions } from "./client";
+export { buildQueryString } from "./query";
 export {
   ApiError,
   isProblemDetails,

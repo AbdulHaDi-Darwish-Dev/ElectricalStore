@@ -7,15 +7,17 @@ export type ApiFetchOptions = {
   /** JSON-serializable body (objects/arrays) or raw BodyInit. */
   body?: unknown;
   signal?: AbortSignal;
-  /** When set later: `Authorization: Bearer …`. Not used in F1. */
+  /** Optional Bearer token for later auth phases. Unused by public F2 APIs. */
   accessToken?: string | null;
   cache?: RequestCache;
   next?: NextFetchRequestConfig;
+  /** Override base URL (tests / explicit server|browser callers). */
+  baseUrl?: string;
 };
 
 /**
  * Minimal native-fetch wrapper for ASP.NET Core.
- * No SDK, no Axios, no auth refresh — foundation only.
+ * No SDK, no Axios, no auth refresh.
  */
 export async function apiFetch<T = unknown>(
   path: string,
@@ -29,6 +31,7 @@ export async function apiFetch<T = unknown>(
     accessToken,
     cache,
     next,
+    baseUrl,
   } = options;
 
   const headers = new Headers(initHeaders);
@@ -56,7 +59,7 @@ export async function apiFetch<T = unknown>(
     }
   }
 
-  const response = await fetch(joinApiUrl(path), {
+  const response = await fetch(joinApiUrl(path, baseUrl), {
     method,
     headers,
     body: requestBody,

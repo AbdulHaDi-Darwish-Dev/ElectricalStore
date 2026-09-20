@@ -52,8 +52,9 @@
 10. ~~CORS for Next.js Dev origin~~ **done** (`Cors:AllowedOrigins`)
 11. Frontend foundation (Storefront + Back Office) against frozen API
 12. ~~Frontend F1 foundation scaffold~~ **done** (`frontend/` — Arabic/RTL, brand-agnostic shells, API/Query foundation; no business features yet)
+13. ~~Frontend F2 public API contract layer~~ **done** (catalog / shipping / checkout preview DTOs + modules; Vitest 4.1.11)
 
-Then: Auth phase + catalog Storefront features.
+Then: Auth phase + catalog Storefront UI (F3).
 
 ## Access Management (Dashboard IAM)
 

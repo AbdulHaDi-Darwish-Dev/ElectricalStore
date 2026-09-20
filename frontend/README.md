@@ -2,13 +2,13 @@
 
 Arabic-first / RTL-first Next.js App Router foundation for Storefront + Back Office.
 
-## Architecture (F1)
+## Architecture
 
 - **One app** for storefront (`/`) and admin (`/admin`)
 - **App Router** + TypeScript + Tailwind CSS v4
 - **Server-first storefront**; admin is more client-interactive later
-- **Native fetch** (`src/lib/api`) — no Axios, no generated SDK
-- **TanStack Query** provider ready for browser server-state (admin/account)
+- **Native fetch** (`src/lib/api`) — no Axios, no generated OpenAPI SDK
+- **TanStack Query** for browser server-state later (not for public SSR catalog)
 - **Zustand / React Hook Form / Zod** installed; cart and forms not built yet
 - **ASP.NET Core** remains the business backend (`http://localhost:5080`)
 
@@ -24,7 +24,8 @@ Commercial identity is **not** finalized. Do not hardcode a store brand.
 
 - Brand strings / logo placeholders: `src/config/brand.ts`
 - Site locale / URL / metadata defaults: `src/config/site.ts`
-- Semantic color tokens: `src/app/globals.css` (`--primary`, `--background`, …)
+- Display currency (not an API field): `src/config/store.ts` → `currencyCode: "SYP"`
+- Semantic color tokens: `src/app/globals.css`
 
 `ElectricalStore` is the **technical** repository name only.
 
@@ -34,9 +35,24 @@ See `.env.example`:
 
 | Variable | Role |
 |---|---|
-| `API_BASE_URL` | Server-side API base |
-| `NEXT_PUBLIC_API_BASE_URL` | Browser API base |
+| `API_BASE_URL` | Server-side API base (`getServerApiBaseUrl`) |
+| `NEXT_PUBLIC_API_BASE_URL` | Browser API base (`getBrowserApiBaseUrl`) |
 | `NEXT_PUBLIC_SITE_URL` | Public site origin |
+
+## Public API contract layer (F2)
+
+Feature-owned modules — types match backend JSON; no invented fields; no runtime Zod validation of responses.
+
+| Module | Functions | Routes |
+|---|---|---|
+| `src/features/catalog` | `getCategories`, `getCategory`, `getProducts`, `getProduct` | `/catalog/categories`, `/catalog/products` |
+| `src/features/shipping` | `getDeliveryZones` | `/shipping/zones` |
+| `src/features/checkout` | `previewCheckout` | `POST /checkout/preview` |
+
+- Catalog/shipping GETs use `next.revalidate` (60s) for SSR-friendly caching.
+- Checkout preview uses `cache: "no-store"`.
+- HTTP errors throw `ApiError` (`status` + `code`); pages decide 404 UX later.
+- **Not in F2:** Place Order, auth, admin APIs, cart, catalog UI.
 
 ## Scripts
 
@@ -44,6 +60,7 @@ See `.env.example`:
 npm run dev
 npm run lint
 npm run typecheck
+npm run test
 npm run build
 ```
 
@@ -53,22 +70,13 @@ npm run build
 |---|---|
 | `src/app/(storefront)` | Public storefront routes |
 | `src/app/admin` | Back-office shell |
-| `src/components/shared` | Layout shells (header/footer/sidebar) |
-| `src/components/ui` | Reserved for selective primitives later |
-| `src/config` | Brand, site, navigation |
-| `src/lib/api` | Fetch + ProblemDetails types |
-| `src/lib/auth` | Reserved — auth not implemented in F1 |
-| `src/lib/query` | QueryClient factory |
-| `src/features` | Feature modules (empty until features land) |
-
-## Intentionally NOT in F1
-
-- Catalog, cart, checkout, orders
-- Login / register / refresh / `/me`
-- Admin CRUD, permissions UX, inventory, shipping
-- Business Next.js proxy routes
-- Full i18n framework
-- shadcn component library install (deferred until needed)
+| `src/components/shared` | Layout shells |
+| `src/config` | Brand, site, store (currency), navigation |
+| `src/lib/api` | Fetch + ProblemDetails + query helpers |
+| `src/lib/auth` | Reserved — auth not implemented |
+| `src/features/catalog` | Public catalog DTOs + API |
+| `src/features/shipping` | Public shipping DTOs + API |
+| `src/features/checkout` | Checkout preview DTOs + API |
 
 ## Dev URLs
 
