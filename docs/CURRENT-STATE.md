@@ -59,7 +59,8 @@
 17. ~~Frontend F6.0 trusted ForwardedHeaders host~~ **done** (`db173a0`; Production fail-safe `Enabled=false`)
 18. ~~Frontend F6 Auth + customer account~~ **done** (`b66c5ea`; local Auth; production Auth go-live still gated)
 19. ~~Frontend F7 Admin foundation~~ **done** (`c73710d` — shell/nav/gates; no business CRUD)
-20. Frontend F7.1 Admin Categories management — **in review** (reference Admin CRUD pattern)
+20. ~~Frontend F7.1 Admin Categories~~ **done** (`7fcec53`)
+21. Frontend F7.2 Admin Products management — **in review**
 
 ### Authentication readiness gate
 

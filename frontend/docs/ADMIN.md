@@ -23,7 +23,6 @@ See `src/features/admin/query-conventions.ts`:
 
 - Keys: `["admin", domain, ...]`
 - Feature-owned API modules (no giant `adminApi.ts`)
-- Short freshness for Inventory/Orders later; do not change global QueryClient solely for Admin
 - Never persist Admin caches to localStorage
 - `403` → Access Denied UX; do not refresh-loop
 
@@ -32,19 +31,29 @@ See `src/features/admin/query-conventions.ts`:
 Feature-owned under `src/features/admin-categories/` + `src/components/admin-categories/`.
 
 - Permission: `Categories.Manage`
-- Routes: `/admin/categories`, `/admin/categories/new`, `/admin/categories/[id]`
-- Query keys: `adminCategoryKeys` (`["admin","categories",...]`)
-- Mutations: create / update / activate / deactivate / image upsert / image delete
-- **No category hard-delete** — backend has activate/deactivate only
-- Image: separate `PUT|DELETE /admin/categories/{id}/image` (multipart `file`)
-- After success: invalidate `adminCategoryKeys.all()` (list + details)
-- Public catalog ISR may lag Admin changes by up to **60 seconds** (existing revalidate) — no cache-tag busting in F7.1
+- No category hard-delete — activate/deactivate only
+- Public catalog ISR may lag Admin changes by up to **60 seconds**
+
+## Products (F7.2)
+
+Feature-owned under `src/features/admin-products/` + `src/components/admin-products/`.
+
+- Permission: `Products.Manage` (not Inventory)
+- Create **requires ≥1 variant** in the same POST (`CreateProductRequest.Variants`)
+- After create → manage screen for additional variants + images
+- Variants: add / update / activate / deactivate (no variant delete)
+- Media: POST images (max 4), DELETE, set primary, reorder (up/down)
+- Update product basics: name/description/categoryId only — lifecycle via activate/deactivate
+- Readiness checklist is informational (active + category active + image + active variant)
+- **Inventory adjustments are deferred to F7.3**
+- Public catalog ISR may lag Admin changes by up to **60 seconds**
 
 ## Phase boundaries
 
-- F7: shell, nav, gates, dashboard shortcuts
-- F7.1: Admin Categories management (reference pattern)
-- Later: Product / Inventory / Orders / Shipping / Settings / IAM CRUD
+- F7: shell, nav, gates
+- F7.1: Categories
+- F7.2: Products (+ variants + media)
+- Later: Inventory / Orders / Shipping / Settings / IAM
 
 ## Production gate
 

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { AdminFeaturePlaceholder } from "@/components/admin";
-import { productsManageCodes } from "@/features/admin";
+import { Suspense } from "react";
+import { AdminLoadingState } from "@/components/admin";
+import { ProductsListView } from "@/components/admin-products";
 
 export const metadata: Metadata = {
   title: "المنتجات",
@@ -9,11 +10,8 @@ export const metadata: Metadata = {
 
 export default function AdminProductsPage() {
   return (
-    <AdminFeaturePlaceholder
-      title="المنتجات"
-      featureLabel="المنتجات"
-      anyOf={productsManageCodes}
-      description="إدارة المنتجات والمتغيرات والوسائط."
-    />
+    <Suspense fallback={<AdminLoadingState label="جاري تحميل المنتجات…" />}>
+      <ProductsListView />
+    </Suspense>
   );
 }
