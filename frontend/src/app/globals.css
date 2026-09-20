@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+/*
+  Semantic design tokens — brand-agnostic.
+  Change these centrally when the commercial identity is finalized.
+  Prefer bg-primary / text-foreground over raw color utilities for brand surfaces.
+*/
+
+:root {
+  --background: #f7f6f3;
+  --foreground: #1c1917;
+  --card: #ffffff;
+  --card-foreground: #1c1917;
+  --primary: #1f4e3d;
+  --primary-foreground: #f5faf7;
+  --secondary: #e8e4dc;
+  --secondary-foreground: #1c1917;
+  --muted: #efece6;
+  --muted-foreground: #57534e;
+  --accent: #dce8e2;
+  --accent-foreground: #1f4e3d;
+  --destructive: #b42318;
+  --destructive-foreground: #fff7f6;
+  --border: #d6d3cd;
+  --ring: #1f4e3d;
+  --radius: 0.5rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --font-sans: var(--font-arabic-sans), "Tahoma", "Segoe UI", sans-serif;
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+}
+
+* {
+  border-color: var(--border);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}

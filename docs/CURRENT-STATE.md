@@ -51,8 +51,9 @@
 9. ~~Operational logging~~ **done**
 10. ~~CORS for Next.js Dev origin~~ **done** (`Cors:AllowedOrigins`)
 11. Frontend foundation (Storefront + Back Office) against frozen API
+12. ~~Frontend F1 foundation scaffold~~ **done** (`frontend/` — Arabic/RTL, brand-agnostic shells, API/Query foundation; no business features yet)
 
-Then: Storefront + Back Office Dashboard frontend + integration.
+Then: Auth phase + catalog Storefront features.
 
 ## Access Management (Dashboard IAM)
 
