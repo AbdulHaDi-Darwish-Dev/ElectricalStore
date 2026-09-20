@@ -137,6 +137,17 @@ Guest Place Order idempotency encrypts the guest access token with ASP.NET Data 
 Configure `DataProtection:KeysPath` (shared durable directory in production) or accept the default `{BaseDirectory}/dp-keys`.
 Ephemeral keys (process-local) make idempotent guest retries fail after restart.
 
+## Forwarded headers / client IP (login rate limiting)
+
+Permixa login rate limiting partitions by `Connection.RemoteIpAddress`. When Next proxies login, ASP.NET must trust only a configured hop. See [TRUSTED-CLIENT-IP.md](TRUSTED-CLIENT-IP.md).
+
+| Environment | Default |
+|-------------|---------|
+| Development | `ForwardedHeaders:Enabled=true`, KnownProxies `127.0.0.1` / `::1` |
+| Production | `Enabled=false` until operators set KnownProxies and/or KnownNetworks |
+
+Do not enable Production ForwardedHeaders without a documented reverse-proxy / Next trust boundary.
+
 ## Operational logging
 
 Uses built-in Microsoft.Extensions.Logging (no Seq/ELK/OpenTelemetry in-app).

@@ -9,7 +9,7 @@
 - Protect connection strings, JWT PEMs, bootstrap passwords, Resend API keys
 - Disable bootstrap after first successful Owner setup and remove OwnerPassword
 - Production must not auto-migrate by default (Development-only migrate in template)
-- Configure forwarded headers / TLS for your deployment
+- Configure forwarded headers / TLS for your deployment — see [TRUSTED-CLIENT-IP.md](TRUSTED-CLIENT-IP.md)
 
 ## Defaults in this template
 
@@ -17,7 +17,7 @@
 - No PEM files or Owner passwords committed
 - Development JWT PEMs and Owner password live in .NET User Secrets only
 - Windows Development DB uses Trusted Connection (no SQL password in source)
-- Login endpoint uses a sample Permixa rate-limit policy
+- Login endpoint uses a sample Permixa rate-limit policy (RemoteIp). Host ForwardedHeaders is **fail-safe off** in Production until `ForwardedHeaders:Enabled` + KnownProxies/Networks are set; Development trusts loopback only. Details: [TRUSTED-CLIENT-IP.md](TRUSTED-CLIENT-IP.md)
 - Admin Category APIs require permission `Categories.Manage`
 - Admin Product APIs require permission `Products.Manage`
 - Admin Inventory list/get/adjustments require `Inventory.Read`; stock adjust requires `Inventory.Adjust`

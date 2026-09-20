@@ -56,8 +56,9 @@
 14. ~~Frontend F3 public storefront catalog UI~~ **done** (home / categories / products; SEO; ISR-friendly `revalidate: 60`)
 15. ~~Frontend F4 frontend-only cart~~ **done** (Zustand + localStorage; min-qty decrement disabled; badge hides zero)
 16. ~~Frontend F5 guest checkout~~ **done** (Preview + Place Order BFF; HttpOnly guest cookie; same-origin place)
+17. Frontend F6.0 trusted client-IP / ForwardedHeaders host boundary — **in review** (Production topology still undefined in-repo; see `docs/TRUSTED-CLIENT-IP.md`)
 
-Then: Auth phase (login/register) + authenticated checkout / My Orders.
+Then: Auth phase (login/register) + authenticated checkout / My Orders **after** production trust hop is configured.
 
 
 ## Access Management (Dashboard IAM)

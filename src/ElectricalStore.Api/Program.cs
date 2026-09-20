@@ -15,7 +15,8 @@ builder.Services
     .AddAppInfrastructure(connectionString, builder.Configuration)
     .AddPermixaHost(builder.Configuration, builder.Environment, connectionString)
     .AddApiServices()
-    .AddFrontendCors(builder.Configuration);
+    .AddFrontendCors(builder.Configuration)
+    .AddElectricalStoreForwardedHeaders(builder.Configuration);
 
 var app = builder.Build();
 
@@ -26,6 +27,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// Correct Connection.RemoteIpAddress from trusted hops BEFORE logging / auth / rate limiting.
+app.UseElectricalStoreForwardedHeaders();
 
 app.UseExceptionHandler();
 // After ExceptionHandler so 401/403/ProblemDetails responses still receive CORS headers

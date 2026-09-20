@@ -19,6 +19,7 @@ public static class ApiEndpointRouteBuilderExtensions
         endpoints.MapOrderingSettingsEndpoints();
         endpoints.MapAccessManagementEndpoints();
         endpoints.MapTestFaultEndpointIfEnabled();
+        endpoints.MapTestRemoteIpEndpointIfEnabled();
         return endpoints;
     }
 }
