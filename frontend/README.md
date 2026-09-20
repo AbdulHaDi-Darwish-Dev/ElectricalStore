@@ -76,6 +76,20 @@ Route: `/cart` (not indexable).
 - Checkout Preview / Place Order are **not** called in F4 — F5 reconcilies price/stock/totals
 - Invalid/malformed persisted JSON resets to an empty cart
 
+## Guest checkout (F5)
+
+Routes: `/checkout`, `/orders/[id]/confirmation` (non-indexable).
+
+- **Checkout Preview** (`previewCheckout`) is authoritative for prices/stock/shipping/minimum — cart snapshots are display-only
+- **Place Order** goes Browser → Next `/api/guest-orders/place` → ASP.NET (security boundary only; same-origin `Origin` required)
+- `guestAccessToken` stored in order-scoped **HttpOnly** cookie `electricalstore.guest-order.{id}`
+  - Path: `/api/guest-orders/{id}` (not sent on unrelated pages)
+  - Max-Age: **30 days** (pragmatic frontend window — backend guest token has **no** expiry; 24h is idempotency-only)
+  - Secure in production; SameSite=Lax
+- Confirmation reload via Next `/api/guest-orders/{id}` + `X-Order-Token`; responses use `Cache-Control: private, no-store`
+- Idempotency-Key in **sessionStorage** as `{ key, fingerprint }` (SHA-256; no plaintext PII); new key when payload changes
+- Cart clears **only** after successful HTTP 201
+
 ## Scripts
 
 ```bash
@@ -98,10 +112,14 @@ npm run build
 | `src/lib/auth` | Reserved — auth not implemented |
 | `src/features/catalog` | Public catalog DTOs + API |
 | `src/features/cart` | Frontend-only cart (Zustand + persistence) |
+| `src/features/orders` | Place Order / Order DTOs + guest BFF clients |
 | `src/features/shipping` | Public shipping DTOs + API |
-| `src/features/checkout` | Checkout preview DTOs + API |
+| `src/features/checkout` | Preview + form schema + idempotency helpers |
 | `src/components/cart` | Cart badge, add-to-cart, cart page UI |
+| `src/components/checkout` | Checkout page UI |
+| `src/components/orders` | Order confirmation UI |
 | `src/components/storefront` | Catalog presentation components |
+| `src/app/api/guest-orders` | HttpOnly guest-token security handlers |
 
 ## Dev URLs
 

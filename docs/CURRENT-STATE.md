@@ -55,8 +55,10 @@
 13. ~~Frontend F2 public API contract layer~~ **done** (catalog / shipping / checkout preview DTOs + modules; Vitest 4.1.11)
 14. ~~Frontend F3 public storefront catalog UI~~ **done** (home / categories / products; SEO; ISR-friendly `revalidate: 60`)
 15. ~~Frontend F4 frontend-only cart~~ **done** (Zustand + localStorage; min-qty decrement disabled; badge hides zero)
+16. ~~Frontend F5 guest checkout~~ **done** (Preview + Place Order BFF; HttpOnly guest cookie; same-origin place)
 
-Then: Checkout Preview + Place Order (F5).
+Then: Auth phase (login/register) + authenticated checkout / My Orders.
+
 
 ## Access Management (Dashboard IAM)
 

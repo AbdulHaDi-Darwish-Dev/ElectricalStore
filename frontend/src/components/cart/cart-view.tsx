@@ -74,6 +74,12 @@ export function CartView() {
 
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
           <Link
+            href="/checkout"
+            className="inline-flex h-11 items-center justify-center rounded-md bg-primary px-5 text-sm font-medium text-primary-foreground transition hover:opacity-90"
+          >
+            إتمام الطلب
+          </Link>
+          <Link
             href="/products"
             className="inline-flex h-11 items-center justify-center rounded-md border border-border px-5 text-sm text-foreground transition hover:border-primary/40"
           >
@@ -89,8 +95,8 @@ export function CartView() {
         </div>
 
         <p className="mt-5 rounded-md bg-muted/60 px-4 py-3 text-sm leading-6 text-muted-foreground">
-          إتمام الطلب سيكون متاحاً في المرحلة التالية بعد التحقق من الأسعار والمخزون
-          والشحن عبر الخادم.
+          الأسعار في السلة تقديرية. عند إتمام الطلب يتحقق الخادم من الأسعار والمخزون
+          والشحن والحد الأدنى.
         </p>
       </section>
     </div>
