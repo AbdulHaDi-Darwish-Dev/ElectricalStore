@@ -14,7 +14,8 @@ builder.Services
     .AddClientRequestExceptionHandling()
     .AddAppInfrastructure(connectionString, builder.Configuration)
     .AddPermixaHost(builder.Configuration, builder.Environment, connectionString)
-    .AddApiServices();
+    .AddApiServices()
+    .AddFrontendCors(builder.Configuration);
 
 var app = builder.Build();
 
@@ -27,6 +28,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseExceptionHandler();
+// After ExceptionHandler so 401/403/ProblemDetails responses still receive CORS headers
+// for allowed origins; before Authentication so preflight OPTIONS is not challenged.
+app.UseCors(FrontendCorsServiceCollectionExtensions.FrontendPolicyName);
 app.UseElectricalStoreRequestLogging();
 app.UseAuthentication();
 app.UseRateLimiter();

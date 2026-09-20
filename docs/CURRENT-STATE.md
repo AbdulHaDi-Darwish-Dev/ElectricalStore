@@ -35,7 +35,8 @@
 | Data Protection | Keys persisted to `DataProtection:KeysPath` or `{BaseDirectory}/dp-keys` (required for guest idempotency Unprotect across restarts) |
 | Operational logging | Built-in `ILogger` + JSON console (Production); request middleware; Order/Inventory Information logs; no bodies/secrets/PII |
 | Postman contract | `docs/postman/ElectricalStore.postman_collection.json` + Local environment (frontend-ready) |
-| Verified tests | **158/158** Release (Domain 48, Application 45, Infrastructure 17, Integration 48) |
+| CORS | Config-driven `Cors:AllowedOrigins` (Dev: `http://localhost:3000`); methods GET/POST/PUT/DELETE/OPTIONS; headers Authorization, Content-Type, Idempotency-Key, X-Order-Token; expose Retry-After; **no** AllowAnyOrigin / **no** AllowCredentials |
+| Verified tests | **162/162** Release (Domain 48, Application 45, Infrastructure 17, Integration 52) |
 
 ## Next work (backend sequence)
 
@@ -48,7 +49,8 @@
 7. ~~Permixa Access Management readiness for Dashboard~~ **done**
 8. ~~SampleNotes cleanup~~ **done** (`DropSampleNotes`)
 9. ~~Operational logging~~ **done**
-10. Backend freeze / frontend start
+10. ~~CORS for Next.js Dev origin~~ **done** (`Cors:AllowedOrigins`)
+11. Frontend foundation (Storefront + Back Office) against frozen API
 
 Then: Storefront + Back Office Dashboard frontend + integration.
 
