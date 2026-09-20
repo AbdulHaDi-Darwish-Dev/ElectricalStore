@@ -153,6 +153,29 @@ Successful confirm / out-for-delivery / cancel invalidate Admin Inventory query 
 - Staff `PUT …/items` (PendingConfirmation reprice) — endpoint exists; not in F7.5 UI
 - Invoice/print/notifications — not in contract
 
+## Settings (F7.6)
+
+Feature-owned under `src/features/admin-settings/` + `src/components/admin-settings/`.
+
+### Ownership
+
+Only business settings exposed by backend:
+
+| Group | Endpoint | Fields |
+|-------|----------|--------|
+| Ordering | `GET/PUT /admin/settings/ordering` | `minimumMerchandiseSubtotal` |
+
+- Permission: `Settings.Manage` (read + update — no separate Settings.Read)
+- DB singleton; updates take effect immediately on next Checkout Preview / Place Order
+- **Zero = no minimum** merchandise subtotal (excludes shipping)
+- Negative rejected → `Ordering.InvalidMinimumOrderAmount`
+- No rowversion concurrency (last-write-wins)
+- Not shipping fees, not env/secrets, not branding CMS
+
+### Arabic field
+
+- الحد الأدنى لقيمة المنتجات — مجموع المنتجات قبل الشحن
+
 ## Phase boundaries
 
 - F7: shell, nav, gates
@@ -161,7 +184,8 @@ Successful confirm / out-for-delivery / cancel invalidate Admin Inventory query 
 - F7.3: Inventory (list + delta adjust)
 - F7.4: Shipping zones
 - F7.5: Admin Orders lifecycle
-- Later: Settings / IAM
+- F7.6: Settings (OrderingSettings)
+- Later: IAM
 
 ## Production gate
 

@@ -63,7 +63,8 @@
 21. ~~Frontend F7.2 Admin Products management~~ **done** (`4a0cbec`)
 22. ~~Frontend F7.3 Admin Inventory management~~ **done** (`1cee845`)
 23. ~~Frontend F7.4 Admin Shipping management~~ **done** (`78d5c5d`)
-24. Frontend F7.5 Admin Orders management — **in review**
+24. ~~Frontend F7.5 Admin Orders management~~ **done** (`67ff327`)
+25. Frontend F7.6 Admin Settings management — **in review**
 
 ### Authentication readiness gate
 

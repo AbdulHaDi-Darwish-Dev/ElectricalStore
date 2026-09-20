@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { AdminFeaturePlaceholder } from "@/components/admin";
-import { settingsManageCodes } from "@/features/admin";
+import { SettingsView } from "@/components/admin-settings";
 
 export const metadata: Metadata = {
   title: "الإعدادات",
@@ -8,12 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function AdminSettingsPage() {
-  return (
-    <AdminFeaturePlaceholder
-      title="إعدادات الطلب"
-      featureLabel="الإعدادات"
-      anyOf={settingsManageCodes}
-      description="الحد الأدنى للطلب والإعدادات التشغيلية."
-    />
-  );
+  return <SettingsView />;
 }
