@@ -4,11 +4,12 @@
  * - Feature-owned API modules later (do not create a giant adminApi.ts).
  * - Query keys: ["admin", domain, ...params] e.g. ["admin", "orders", orderId]
  * - Mutations invalidate the matching domain prefix.
- * - Prefer short staleTime for Inventory/Orders when those features arrive.
+ * - Prefer short staleTime for Inventory/Orders (see adminOperationalQueryDefaults).
  * - Do not change global QueryClient defaults only for Admin.
  * - Never persist Admin query cache to localStorage.
  * - Normalize errors via ApiError (status + code); map 403 to Access Denied UX.
  * - 401 uses existing authenticatedFetch refresh; 403 must not refresh-loop.
+ * - Inventory adjustments: no optimistic updates — mutate then invalidate domain prefix.
  */
 
 export const ADMIN_QUERY_ROOT = "admin" as const;

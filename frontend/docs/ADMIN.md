@@ -45,15 +45,49 @@ Feature-owned under `src/features/admin-products/` + `src/components/admin-produ
 - Media: POST images (max 4), DELETE, set primary, reorder (up/down)
 - Update product basics: name/description/categoryId only — lifecycle via activate/deactivate
 - Readiness checklist is informational (active + category active + image + active variant)
-- **Inventory adjustments are deferred to F7.3**
+- Inventory adjustments live under **F7.3** (not inside product forms)
 - Public catalog ISR may lag Admin changes by up to **60 seconds**
+
+## Inventory (F7.3)
+
+Feature-owned under `src/features/admin-inventory/` + `src/components/admin-inventory/`.
+
+### Stock semantics (per ProductVariant)
+
+| Field | Arabic | Notes |
+|-------|--------|--------|
+| OnHand | المخزون الفعلي | Admin-adjustable via **delta** (`quantityDelta`) |
+| Reserved | المحجوز | Order lifecycle only — **read-only** in Admin Inventory |
+| Available | المتاح للبيع | Derived `OnHand − Reserved` — **read-only**; server DTO is source of truth |
+
+### Permissions
+
+- `Inventory.Read` — list / get (page gate)
+- `Inventory.Adjust` — `POST …/adjust` only (does **not** imply Read on the API)
+- Do **not** use `Products.Manage` for inventory authorization
+- Read-only users see stock; adjust actions are **hidden** (not merely disabled)
+
+### Adjustment ownership
+
+- Request: `{ quantityDelta, reason }` — **add/remove**, not absolute OnHand set
+- Reason required (max 500)
+- OnHand may be 0; cannot go negative; cannot fall below Reserved
+- Optimistic concurrency via SQL `rowversion` → `Inventory.ConcurrencyConflict` (409); refetch and retry
+- Adjustment history endpoint exists (`GET …/adjustments`) but **no Admin history UI** in F7.3
+
+### Public / Checkout interaction
+
+- Backend inventory is authoritative immediately after adjust
+- Public catalog stock UI may lag up to **~60s ISR**
+- Checkout Preview and Place Order always revalidate against the backend
 
 ## Phase boundaries
 
 - F7: shell, nav, gates
 - F7.1: Categories
 - F7.2: Products (+ variants + media)
-- Later: Inventory / Orders / Shipping / Settings / IAM
+- F7.3: Inventory (list + delta adjust)
+- Later: Orders / Shipping / Settings / IAM
 
 ## Production gate
 

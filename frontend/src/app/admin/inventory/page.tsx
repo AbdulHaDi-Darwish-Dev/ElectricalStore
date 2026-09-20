@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { AdminFeaturePlaceholder } from "@/components/admin";
-import { inventoryAccessCodes } from "@/features/admin";
+import { Suspense } from "react";
+import { AdminLoadingState } from "@/components/admin";
+import { InventoryListView } from "@/components/admin-inventory";
 
 export const metadata: Metadata = {
   title: "المخزون",
@@ -9,11 +10,8 @@ export const metadata: Metadata = {
 
 export default function AdminInventoryPage() {
   return (
-    <AdminFeaturePlaceholder
-      title="المخزون"
-      featureLabel="المخزون"
-      anyOf={inventoryAccessCodes}
-      description="قراءة المخزون وتعديل الكميات المتاحة."
-    />
+    <Suspense fallback={<AdminLoadingState label="جاري تحميل المخزون…" />}>
+      <InventoryListView />
+    </Suspense>
   );
 }

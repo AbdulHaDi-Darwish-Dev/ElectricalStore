@@ -17,7 +17,11 @@ import {
   AdminConfirmDialog,
   AdminFeedback,
 } from "@/components/admin-categories";
-import { AppPermission, adminOperationalQueryDefaults } from "@/features/admin";
+import {
+  AppPermission,
+  adminOperationalQueryDefaults,
+  canAccessInventory,
+} from "@/features/admin";
 import {
   activateAdminProduct,
   adminProductKeys,
@@ -32,6 +36,7 @@ import {
   type ProductBasicsFormValues,
 } from "@/features/admin-products";
 import { ApiError } from "@/lib/api";
+import { useAuthStore } from "@/lib/auth";
 import { CategorySelect } from "./category-select";
 import { ProductMediaSection } from "./product-media-section";
 import { ProductReadinessPanel } from "./product-readiness";
@@ -63,6 +68,8 @@ function ProductEditContent({
 }: ProductEditViewProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const permissions = useAuthStore((s) => s.permissions);
+  const showInventoryLink = canAccessInventory(permissions);
   const [formError, setFormError] = useState<string | null>(null);
   const [formSuccess, setFormSuccess] = useState<string | null>(() =>
     initialStatus === "created"
@@ -210,12 +217,22 @@ function ProductEditContent({
         title={product.name}
         description={`التصنيف: ${product.categoryName}${product.categoryIsActive ? "" : " (غير نشط)"}`}
         actions={
-          <Link
-            href="/admin/products"
-            className="rounded-md border border-border px-3 py-2 text-sm hover:bg-muted"
-          >
-            رجوع للقائمة
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            {showInventoryLink ? (
+              <Link
+                href={`/admin/inventory?productId=${encodeURIComponent(productId)}`}
+                className="rounded-md border border-border px-3 py-2 text-sm hover:bg-muted"
+              >
+                مخزون هذا المنتج
+              </Link>
+            ) : null}
+            <Link
+              href="/admin/products"
+              className="rounded-md border border-border px-3 py-2 text-sm hover:bg-muted"
+            >
+              رجوع للقائمة
+            </Link>
+          </div>
         }
       />
 
