@@ -81,13 +81,42 @@ Feature-owned under `src/features/admin-inventory/` + `src/components/admin-inve
 - Public catalog stock UI may lag up to **~60s ISR**
 - Checkout Preview and Place Order always revalidate against the backend
 
+## Shipping (F7.4)
+
+Feature-owned under `src/features/admin-shipping/` + `src/components/admin-shipping/`.
+
+### Zone model
+
+- Named fixed-fee delivery zones (Aleppo MVP) — **no maps/geo**
+- Fields: `name`, `fee` (SYP, decimal scale 2), `isActive`
+- **Fee = 0** is allowed (free shipping for that zone)
+- **Minimum merchandise subtotal** is **global** `OrderingSettings` (`Settings.Manage`) — **not** per zone (deferred to Settings)
+
+### Lifecycle
+
+- Create: `{ name, fee, isActive }`
+- Update: `{ name, fee }` only
+- Activate / deactivate: separate POSTs (no hard delete)
+- Inactive zones omitted from public `GET /shipping/zones`
+
+### Permission
+
+- `Shipping.Manage` for all admin shipping routes
+
+### Public / Checkout
+
+- Public zone list uses `revalidate: 60` (~60s lag possible)
+- Checkout Preview / Place Order remain backend-authoritative for fee + totals
+- Historical orders keep snapshotted zone name + fee
+
 ## Phase boundaries
 
 - F7: shell, nav, gates
 - F7.1: Categories
 - F7.2: Products (+ variants + media)
 - F7.3: Inventory (list + delta adjust)
-- Later: Orders / Shipping / Settings / IAM
+- F7.4: Shipping zones
+- Later: Orders / Settings / IAM
 
 ## Production gate
 

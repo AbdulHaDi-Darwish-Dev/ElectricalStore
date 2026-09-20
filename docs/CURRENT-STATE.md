@@ -61,7 +61,8 @@
 19. ~~Frontend F7 Admin foundation~~ **done** (`c73710d` — shell/nav/gates; no business CRUD)
 20. ~~Frontend F7.1 Admin Categories~~ **done** (`7fcec53`)
 21. ~~Frontend F7.2 Admin Products management~~ **done** (`4a0cbec`)
-22. Frontend F7.3 Admin Inventory management — **in review**
+22. ~~Frontend F7.3 Admin Inventory management~~ **done** (`1cee845`)
+23. Frontend F7.4 Admin Shipping management — **in review**
 
 ### Authentication readiness gate
 
