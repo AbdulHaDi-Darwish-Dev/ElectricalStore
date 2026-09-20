@@ -56,9 +56,17 @@
 14. ~~Frontend F3 public storefront catalog UI~~ **done** (home / categories / products; SEO; ISR-friendly `revalidate: 60`)
 15. ~~Frontend F4 frontend-only cart~~ **done** (Zustand + localStorage; min-qty decrement disabled; badge hides zero)
 16. ~~Frontend F5 guest checkout~~ **done** (Preview + Place Order BFF; HttpOnly guest cookie; same-origin place)
-17. Frontend F6.0 trusted client-IP / ForwardedHeaders host boundary — **in review** (Production topology still undefined in-repo; see `docs/TRUSTED-CLIENT-IP.md`)
+17. ~~Frontend F6.0 trusted ForwardedHeaders host~~ **done** (`db173a0`; Production fail-safe `Enabled=false`)
+18. Frontend F6 Auth + customer account — **local implementation in review** (production auth go-live still gated)
 
-Then: Auth phase (login/register) + authenticated checkout / My Orders **after** production trust hop is configured.
+### Authentication readiness gate
+
+| Surface | Status |
+|---------|--------|
+| **Local Auth** | Ready to develop/test (Dev ForwardedHeaders trusts loopback; Next login BFF forwards a non-spoofed local identity) |
+| **Production Auth deployment** | **BLOCKED** until trusted ingress + sanitized client IP + explicit `KnownProxies`/`KnownNetworks` + verified `RemoteIpAddress` before RateLimiter |
+
+Do **not** describe F6 Auth as production-ready. Keep Production `ForwardedHeaders:Enabled=false` until ops configures trust.
 
 
 ## Access Management (Dashboard IAM)

@@ -51,4 +51,4 @@ Consumer ASP.NET Core app using Permixa NuGet IAM. Clean Architecture host.
 
 ## Current / next
 
-See [CURRENT-STATE.md](CURRENT-STATE.md). Backend MVP frozen; CORS for `http://localhost:3000` configured. Frontend F1–F5 done (catalog, cart, secure guest checkout). F6.0 ForwardedHeaders host scaffolding in review — production ingress topology still undefined (`docs/TRUSTED-CLIENT-IP.md`). Do not implement F6 auth until the trusted client-IP chain is accepted.
+See [CURRENT-STATE.md](CURRENT-STATE.md). Backend MVP frozen; CORS for `http://localhost:3000` configured. Frontend F1–F5 done; F6.0 ForwardedHeaders committed (`db173a0`). **F6 Auth is implemented for local development** — production auth go-live remains **BLOCKED** until trusted ingress + KnownProxies/Networks are configured (see `docs/TRUSTED-CLIENT-IP.md`). Do not treat F6 as production-ready.

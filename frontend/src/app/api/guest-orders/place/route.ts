@@ -18,8 +18,9 @@ import {
 import { toClientSafeOrderDto } from "@/features/orders/safe-dto";
 
 /**
- * Security-only Place Order boundary for guest checkout.
- * Same-origin Origin check + Json content-type; captures guestAccessToken into HttpOnly cookie.
+ * Security-only Place Order boundary (guest or authenticated).
+ * Same-origin Origin check + Json content-type; optional Bearer forward;
+ * captures guestAccessToken into HttpOnly cookie only when present.
  * No pricing / stock / minimum-order business logic.
  */
 export async function POST(request: Request) {
@@ -75,13 +76,21 @@ export async function POST(request: Request) {
     );
   }
 
+  const upstreamHeaders: Record<string, string> = {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+    [IDEMPOTENCY_KEY_HEADER]: idempotencyKey.trim(),
+  };
+
+  // Forward browser Bearer for authenticated placement. Never log or persist.
+  const authorization = request.headers.get("authorization");
+  if (authorization?.toLowerCase().startsWith("bearer ")) {
+    upstreamHeaders.Authorization = authorization;
+  }
+
   const upstream = await fetch(joinApiUrl("/orders", getServerApiBaseUrl()), {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-      [IDEMPOTENCY_KEY_HEADER]: idempotencyKey.trim(),
-    },
+    headers: upstreamHeaders,
     body: JSON.stringify(body),
     cache: "no-store",
   });

@@ -6,24 +6,37 @@ import {
 } from "./types";
 
 /**
- * Guest Place Order via Next security boundary (not direct ASP.NET).
+ * Place Order via Next security boundary (not direct ASP.NET).
+ * Optional Bearer for authenticated customers — Next forwards Authorization.
  * Browser never receives/stores guestAccessToken.
  */
+export function placeOrder(
+  request: PlaceOrderRequest,
+  idempotencyKey: string,
+  accessToken?: string | null,
+): Promise<OrderDto> {
+  const headers: Record<string, string> = {
+    [IDEMPOTENCY_KEY_HEADER]: idempotencyKey,
+  };
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
+  }
+
+  return apiFetch<OrderDto>("/api/guest-orders/place", {
+    method: "POST",
+    body: request,
+    headers,
+    cache: "no-store",
+    baseUrl: "",
+  });
+}
+
+/** Guest-only alias. */
 export function placeGuestOrder(
   request: PlaceOrderRequest,
   idempotencyKey: string,
 ): Promise<OrderDto> {
-  return apiFetch<OrderDto>("/api/guest-orders/place", {
-    method: "POST",
-    body: request,
-    headers: {
-      [IDEMPOTENCY_KEY_HEADER]: idempotencyKey,
-    },
-    cache: "no-store",
-    // Same-origin Next route — empty base uses relative URL via joinApiUrl.
-    // Override: call browser origin relative path.
-    baseUrl: "",
-  });
+  return placeOrder(request, idempotencyKey, null);
 }
 
 /**

@@ -10,7 +10,12 @@ export {
   GUEST_ORDER_TOKEN_HEADER,
   IDEMPOTENCY_KEY_HEADER,
 } from "./types";
-export { getGuestOrder, placeGuestOrder } from "./api";
+export { getGuestOrder, placeGuestOrder, placeOrder } from "./api";
+export {
+  getMyOrder,
+  listMyOrders,
+  type OrderListItemDto,
+} from "./customer-api";
 export { toClientSafeOrderDto } from "./safe-dto";
 export {
   formatOrderStatus,

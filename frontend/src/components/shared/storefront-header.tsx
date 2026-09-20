@@ -6,15 +6,74 @@ import { useId, useState } from "react";
 import { brand } from "@/config/brand";
 import { storefrontNav } from "@/config/navigation";
 import { CartBadge } from "@/components/cart/cart-badge";
+import {
+  selectAuthReady,
+  selectIsAuthenticated,
+  useAuthActions,
+  useAuthStore,
+} from "@/lib/auth";
 
 export function StorefrontHeader() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const menuId = useId();
+  const authReady = useAuthStore(selectAuthReady);
+  const authenticated = useAuthStore(selectIsAuthenticated);
+  const { logout } = useAuthActions();
+  const [loggingOut, setLoggingOut] = useState(false);
 
   function closeMenu() {
     setOpen(false);
   }
+
+  async function onLogout() {
+    setLoggingOut(true);
+    try {
+      await logout();
+    } finally {
+      setLoggingOut(false);
+      closeMenu();
+    }
+  }
+
+  const authLinks = !authReady ? (
+    <span className="inline-block h-4 w-20 animate-pulse rounded bg-muted" aria-hidden />
+  ) : authenticated ? (
+    <>
+      <Link
+        href="/account"
+        className="text-sm text-foreground hover:text-primary"
+        onClick={closeMenu}
+      >
+        حسابي
+      </Link>
+      <button
+        type="button"
+        onClick={() => void onLogout()}
+        disabled={loggingOut}
+        className="text-sm text-foreground hover:text-primary disabled:opacity-60"
+      >
+        {loggingOut ? "جاري الخروج…" : "تسجيل الخروج"}
+      </button>
+    </>
+  ) : (
+    <>
+      <Link
+        href="/login"
+        className="text-sm text-foreground hover:text-primary"
+        onClick={closeMenu}
+      >
+        تسجيل الدخول
+      </Link>
+      <Link
+        href="/register"
+        className="text-sm text-foreground hover:text-primary"
+        onClick={closeMenu}
+      >
+        إنشاء حساب
+      </Link>
+    </>
+  );
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/80 bg-card/95 backdrop-blur-sm">
@@ -53,7 +112,8 @@ export function StorefrontHeader() {
           </ul>
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <div className="hidden items-center gap-3 md:flex">{authLinks}</div>
           <CartBadge />
           <button
             type="button"
@@ -108,6 +168,54 @@ export function StorefrontHeader() {
                 السلة
               </Link>
             </li>
+            {!authReady ? (
+              <li className="py-3">
+                <span className="inline-block h-4 w-24 animate-pulse rounded bg-muted" />
+              </li>
+            ) : authenticated ? (
+              <>
+                <li>
+                  <Link
+                    href="/account"
+                    onClick={closeMenu}
+                    className="block py-3 text-sm text-foreground"
+                  >
+                    حسابي
+                  </Link>
+                </li>
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => void onLogout()}
+                    disabled={loggingOut}
+                    className="block w-full py-3 text-start text-sm text-foreground disabled:opacity-60"
+                  >
+                    {loggingOut ? "جاري الخروج…" : "تسجيل الخروج"}
+                  </button>
+                </li>
+              </>
+            ) : (
+              <>
+                <li>
+                  <Link
+                    href="/login"
+                    onClick={closeMenu}
+                    className="block py-3 text-sm text-foreground"
+                  >
+                    تسجيل الدخول
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/register"
+                    onClick={closeMenu}
+                    className="block py-3 text-sm text-foreground"
+                  >
+                    إنشاء حساب
+                  </Link>
+                </li>
+              </>
+            )}
           </ul>
         </nav>
       ) : null}

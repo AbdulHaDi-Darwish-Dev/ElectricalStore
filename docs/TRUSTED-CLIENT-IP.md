@@ -68,6 +68,17 @@ Section: `ForwardedHeaders`
 
 Local Next on the same machine can forward a client IP; ASP.NET accepts it only from loopback.
 
+### Authentication application vs production go-live
+
+| | Status |
+|--|--------|
+| Authentication **application code** (Next BFF, cookies, account UI) | Implemented for **local** development/testing |
+| **Production Auth deployment** | **BLOCKED** until trusted ingress + KnownProxies/Networks + RemoteIp verification |
+
+Local login BFF does **not** read browser `X-Forwarded-For`, `X-Real-IP`, or `Forwarded`.
+It always forwards the explicit loopback identity `127.0.0.1` (Development KnownProxies).
+That is a **local development identity only** — shared Login bucket for one developer; it does **not** prove production per-client partitioning.
+
 ### Production
 
 Committed Production baseline keeps `Enabled=false` (inherits `appsettings.json`).
@@ -108,7 +119,7 @@ Browser
         → Login rate limiter partitions per client
 ```
 
-**Next forwarding is not implemented in F6.0** (frontend untouched). F6 auth BFF must forward only a client IP taken from a **trusted** ingress source, and must **overwrite** `X-Forwarded-For` to that single IP (not append untrusted chains). ASP.NET `ForwardLimit=1` expects one client value from the trusted hop.
+**Next forwarding (local Auth BFF):** Login sets `X-Forwarded-For: 127.0.0.1` only — never from request headers. Production client-IP forwarding remains unimplemented until trusted ingress + KnownProxies/Networks exist.
 
 ## Direct API exposure
 

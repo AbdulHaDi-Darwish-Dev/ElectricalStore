@@ -23,9 +23,10 @@ import {
 } from "@/features/checkout";
 import {
   getOrderingErrorMessage,
-  placeGuestOrder,
+  placeOrder,
   type PlaceOrderRequest,
 } from "@/features/orders";
+import { useAuthStore } from "@/lib/auth";
 import { EmptyState } from "@/components/storefront/empty-state";
 
 export function CheckoutView() {
@@ -34,6 +35,8 @@ export function CheckoutView() {
   const hasHydrated = useCartStore((state) => state.hasHydrated);
   const items = useCartStore((state) => state.items);
   const clearCart = useCartStore((state) => state.clearCart);
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const authStatus = useAuthStore((state) => state.status);
 
   const [businessError, setBusinessError] = useState<string | null>(null);
   const [forceNewIdempotency, setForceNewIdempotency] = useState(false);
@@ -82,13 +85,18 @@ export function CheckoutView() {
         forceNew: forceNewIdempotency,
       });
       setForceNewIdempotency(false);
-      return placeGuestOrder(payload, key);
+      const token = authStatus === "authenticated" ? accessToken : null;
+      return placeOrder(payload, key, token);
     },
     onSuccess: (order) => {
       clearIdempotencyAttempt();
       clearCart();
       void queryClient.removeQueries({ queryKey: ["checkout-preview"] });
-      router.replace(`/orders/${order.id}/confirmation`);
+      if (authStatus === "authenticated") {
+        router.replace(`/account/orders/${order.id}`);
+      } else {
+        router.replace(`/orders/${order.id}/confirmation`);
+      }
     },
     onError: (error) => {
       if (error instanceof ApiError) {

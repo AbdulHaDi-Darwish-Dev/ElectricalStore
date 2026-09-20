@@ -18,6 +18,7 @@
 - Development JWT PEMs and Owner password live in .NET User Secrets only
 - Windows Development DB uses Trusted Connection (no SQL password in source)
 - Login endpoint uses a sample Permixa rate-limit policy (RemoteIp). Host ForwardedHeaders is **fail-safe off** in Production until `ForwardedHeaders:Enabled` + KnownProxies/Networks are set; Development trusts loopback only. Details: [TRUSTED-CLIENT-IP.md](TRUSTED-CLIENT-IP.md)
+- **Auth deployment gate:** Local Auth application code may run against Development loopback trust. **Production Auth go-live is BLOCKED** until trusted ingress sanitizes client IP and Production KnownProxies/Networks are set. Do not enable trust-all ForwardedHeaders.
 - Admin Category APIs require permission `Categories.Manage`
 - Admin Product APIs require permission `Products.Manage`
 - Admin Inventory list/get/adjustments require `Inventory.Read`; stock adjust requires `Inventory.Adjust`

@@ -1,12 +1,45 @@
-/**
- * Auth foundation reserved for a later phase.
- *
- * Planned (not implemented in F1):
- * - Access token in browser memory
- * - Refresh token in Next-owned HttpOnly cookie
- * - Refresh rotation with single-flight
- * - GET /me permission hydration for UX only
- *
- * Do not add login/refresh/logout route handlers here until the Auth phase.
- */
-export {};
+export {
+  AUTH_REFRESH_COOKIE_NAME,
+  AUTH_REFRESH_COOKIE_PATH,
+  authRefreshCookieOptions,
+  clearAuthRefreshCookieOptions,
+  maxAgeSecondsFromExpiresAtUtc,
+} from "./refresh-cookie";
+export {
+  LOCAL_DEV_LOGIN_CLIENT_IP,
+  resolveForwardableClientIp,
+  resolveLocalDevLoginClientIp,
+} from "./client-ip";
+export { isSafeReturnTo, resolveSafeReturnTo } from "./return-to";
+export { hasAnyPermission, hasPermission } from "./permissions";
+export { getAuthErrorMessage, MFA_UNAVAILABLE_MESSAGE } from "./errors";
+export {
+  useAuthStore,
+  selectAuthReady,
+  selectIsAuthenticated,
+  type AuthStatus,
+} from "./session-store";
+export { authenticatedFetch, type AuthenticatedFetchOptions } from "./authenticated-fetch";
+export {
+  coordinatedRefresh,
+  hasRefreshInFlight,
+  postLogin,
+  postLogout,
+  fetchMe,
+  broadcastLogout,
+} from "./auth-api";
+export { AuthProvider, useAuthActions } from "./auth-provider";
+export type {
+  AuthenticationResultDto,
+  BrowserAuthTokensDto,
+  BrowserLoginResponseDto,
+  LoginRequest,
+  MeDto,
+  RegisterRequest,
+  RegisterResponseDto,
+} from "./types";
+export {
+  isAuthenticationResult,
+  isMfaLoginChallenge,
+  toBrowserAuthTokens,
+} from "./types";
