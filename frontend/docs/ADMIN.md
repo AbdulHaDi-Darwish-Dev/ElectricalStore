@@ -176,6 +176,45 @@ Only business settings exposed by backend:
 
 - الحد الأدنى لقيمة المنتجات — مجموع المنتجات قبل الشحن
 
+## Access / IAM (F7.7)
+
+Feature-owned under `src/features/admin-iam/` + `src/components/admin-iam/`.
+
+Root: `/admin/access` — permission-aware landing (no invented `Iam.Access`).
+
+| Module | Route | Gate(s) |
+|--------|-------|---------|
+| Users | `/admin/access/users`, `/users/[id]` | **Screen:** `Iam.Users.Read` only. Actions: `Iam.UserRoles.Manage`, `Iam.UserPermissionOverrides.Manage` |
+| Roles | `/admin/access/roles`, `/roles/[id]` | **Screen:** `Iam.Roles.Read` only. Actions: `Iam.Roles.Create` / `Update` / `Delete`, `Iam.RolePermissions.Manage` |
+| Permissions catalog | `/admin/access/permissions` | `Iam.Permissions.Read` (read-only UI) |
+| Audit | `/admin/access/audit` | `Iam.Audit.Read` |
+
+Mutation permissions **do not** imply Read (same rule as Inventory Adjust ≠ Read). Create-without-Read cannot use the Roles module: `GET /roles` and `GET /roles/{id}` require `Iam.Roles.Read`; reference roles for create come from that list. `GET /admin/access/me/roles` is auth-only (no `Roles.Read`) but F7.7 does **not** invent a Create-only UI on that path.
+
+### Authorization rules (frontend)
+
+- Use **permission codes only** — never role names (`Admin` / `Owner` / …).
+- Backend is authority; UI gates are UX only.
+- **RoleLevel**: lower number = higher authority. Displayed; not edited as a free number.
+- Role create/reposition: `{ name?, referenceRoleId, placement: Above|Below|SameLevel }` — server assigns level.
+- User roles / role permissions: **replace-set** (`PUT` full id lists).
+- Overrides: `Allow` / `Deny`; remove restores inheritance.
+- Precedence (server): **UserDeny > UserAllow > Role > DefaultDeny**. Effective permissions on user detail come from the API — not client calculation.
+- After self-affecting IAM mutations (and role permission changes), refresh `/me` via `refreshCurrentUserPermissions()` (token unchanged; in-memory permissions update).
+
+### Deferred / not in Admin UI
+
+- Sessions (`Iam.Sessions.Read`) — no Admin sessions adapter wired for this phase
+- User lock / email change — permissions exist; Admin endpoints deferred
+- Permission Create/Update — catalog is read-only in UI
+- Password reset, MFA admin, impersonation — not exposed
+
+### Backend gaps to note
+
+- Hierarchy / self-protection enforced by API (403 + ProblemDetails); UI cannot fully pre-disable without actor RoleLevel context beyond `/me` effective level on list DTOs
+- Audit metadata not rendered raw (sensitivity)
+- No Sessions revoke UI
+
 ## Phase boundaries
 
 - F7: shell, nav, gates
@@ -185,7 +224,7 @@ Only business settings exposed by backend:
 - F7.4: Shipping zones
 - F7.5: Admin Orders lifecycle
 - F7.6: Settings (OrderingSettings)
-- Later: IAM
+- F7.7: Admin IAM (Users / Roles / Permissions catalog / Audit)
 
 ## Production gate
 

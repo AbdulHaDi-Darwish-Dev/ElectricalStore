@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { AdminFeaturePlaceholder } from "@/components/admin";
-import { accessManagementCodes } from "@/features/admin";
+import { AccessLandingView } from "@/components/admin-iam";
 
 export const metadata: Metadata = {
   title: "إدارة الوصول",
@@ -8,12 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function AdminAccessPage() {
-  return (
-    <AdminFeaturePlaceholder
-      title="إدارة الوصول"
-      featureLabel="المستخدمين والأدوار والصلاحيات"
-      anyOf={accessManagementCodes}
-      description="سطح إدارة الهوية والصلاحيات فوق Permixa."
-    />
-  );
+  return <AccessLandingView />;
 }
