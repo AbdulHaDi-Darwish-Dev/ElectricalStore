@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { AdminFeaturePlaceholder } from "@/components/admin";
-import { ordersAccessCodes } from "@/features/admin";
+import { Suspense } from "react";
+import { AdminLoadingState } from "@/components/admin";
+import { OrdersListView } from "@/components/admin-orders";
 
 export const metadata: Metadata = {
   title: "الطلبات",
@@ -9,11 +10,8 @@ export const metadata: Metadata = {
 
 export default function AdminOrdersPage() {
   return (
-    <AdminFeaturePlaceholder
-      title="الطلبات"
-      featureLabel="الطلبات"
-      anyOf={ordersAccessCodes}
-      description="متابعة دورة حياة الطلبات من لوحة التشغيل."
-    />
+    <Suspense fallback={<AdminLoadingState label="جاري تحميل الطلبات…" />}>
+      <OrdersListView />
+    </Suspense>
   );
 }

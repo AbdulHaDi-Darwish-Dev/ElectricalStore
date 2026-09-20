@@ -13,6 +13,7 @@ Arabic-first / RTL-first Next.js App Router foundation for Storefront + Back Off
 - **ASP.NET Core** remains the business backend (`http://localhost:5180`)
 - Admin Inventory (F7.3): per-variant OnHand delta adjust; Reserved/Available read-only; `Inventory.Read` / `Inventory.Adjust`
 - Admin Shipping (F7.4): delivery zones name + fee + activate/deactivate; `Shipping.Manage`; min order is Settings (global)
+- Admin Orders (F7.5): list/detail + lifecycle actions; `Orders.Read` / `Orders.Manage`; confirm reserves; out-for-delivery dispatches
 
 ## Arabic / RTL
 

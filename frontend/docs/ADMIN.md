@@ -109,6 +109,50 @@ Feature-owned under `src/features/admin-shipping/` + `src/components/admin-shipp
 - Checkout Preview / Place Order remain backend-authoritative for fee + totals
 - Historical orders keep snapshotted zone name + fee
 
+## Orders (F7.5)
+
+Feature-owned under `src/features/admin-orders/` + `src/components/admin-orders/`.
+
+### Permissions
+
+- `Orders.Read` — list + detail (page gate)
+- `Orders.Manage` — confirm / prepare / out-for-delivery / deliver / mark-paid / cancel
+- Manage does **not** imply Read on the API
+
+### State machine (explicit actions — no free status dropdown)
+
+```
+PendingConfirmation → confirm → Confirmed (reserves inventory)
+PendingConfirmation → cancel → Cancelled
+Confirmed → prepare → Preparing
+Confirmed → cancel → Cancelled (releases reservation)
+Preparing → out-for-delivery → OutForDelivery (dispatch OnHand+Reserved)
+Preparing → cancel → Cancelled (releases reservation)
+OutForDelivery → deliver → Delivered (no inventory mutation)
+OutForDelivery|Delivered + Unpaid → mark-paid → Paid (COD; not reversible in UI)
+Delivered / Cancelled — terminal for fulfillment
+```
+
+### Payment
+
+- COD only (`CashOnDelivery`)
+- `Unpaid` / `Paid`; mark-paid only when OutForDelivery or Delivered
+- Deliver does **not** auto-mark Paid
+
+### Filters
+
+- `status`, `paymentStatus`, `search` (order number / name / phone), optional date range params in API
+- **No server pagination** — list returns all matching rows
+
+### Inventory invalidation
+
+Successful confirm / out-for-delivery / cancel invalidate Admin Inventory query cache in the same session.
+
+### Deferred
+
+- Staff `PUT …/items` (PendingConfirmation reprice) — endpoint exists; not in F7.5 UI
+- Invoice/print/notifications — not in contract
+
 ## Phase boundaries
 
 - F7: shell, nav, gates
@@ -116,7 +160,8 @@ Feature-owned under `src/features/admin-shipping/` + `src/components/admin-shipp
 - F7.2: Products (+ variants + media)
 - F7.3: Inventory (list + delta adjust)
 - F7.4: Shipping zones
-- Later: Orders / Settings / IAM
+- F7.5: Admin Orders lifecycle
+- Later: Settings / IAM
 
 ## Production gate
 
