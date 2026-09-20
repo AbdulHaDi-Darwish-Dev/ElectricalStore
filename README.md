@@ -7,7 +7,25 @@ ASP.NET Core store API consuming **Permixa** IAM from NuGet.
 ```powershell
 cd E:\ElectricalStore
 .\scripts\init-dev-secrets.ps1
-dotnet run --project src/ElectricalStore.Api
+.\dev.ps1
+```
+
+This opens the API and Next.js storefront in separate windows:
+
+- Backend: http://localhost:5080
+- Health: http://localhost:5080/health
+- Frontend: http://localhost:3000
+
+Stop both (only processes started by the launcher):
+
+```powershell
+.\stop-dev.ps1
+```
+
+Or start the API alone:
+
+```powershell
+dotnet run --project src/ElectricalStore.Api --launch-profile http
 ```
 
 Uses local SQL Server `DESKTOP-30CDIBP\MSSQLSERVER22` / database `ElectricalStore.Db` with Windows Authentication (configured by the setup script + `appsettings.Development.json`).

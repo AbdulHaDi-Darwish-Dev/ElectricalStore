@@ -25,7 +25,26 @@ If it generates a new Owner password, it prints that password **once** — store
 
 ```powershell
 cd E:\ElectricalStore
-dotnet run --project src/ElectricalStore.Api
+.\dev.ps1
+```
+
+Opens API + frontend in separate PowerShell windows (ports **5080** / **3000**). Uses `npm.cmd` for the frontend (avoids blocked `npm.ps1` under ExecutionPolicy).
+
+- Backend: http://localhost:5080  
+- Health: http://localhost:5080/health  
+- Frontend: http://localhost:3000  
+- Swagger: http://localhost:5080/swagger  
+
+Stop launcher-tracked processes only:
+
+```powershell
+.\stop-dev.ps1
+```
+
+API alone (without the storefront):
+
+```powershell
+dotnet run --project src/ElectricalStore.Api --launch-profile http
 ```
 
 Swagger: http://localhost:5080/swagger

@@ -54,6 +54,9 @@ frontend/out/
 frontend/coverage/
 frontend/.turbo/
 
+## Local launcher process tracking (dev.ps1 / stop-dev.ps1)
+.dev-processes.json
+
 ## Node / npm (repo-wide)
 node_modules/
 npm-debug.log*
