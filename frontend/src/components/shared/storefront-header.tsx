@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useId, useState } from "react";
 import { brand } from "@/config/brand";
 import { storefrontNav } from "@/config/navigation";
+import { CartBadge } from "@/components/cart/cart-badge";
 
 export function StorefrontHeader() {
   const pathname = usePathname();
@@ -17,7 +18,7 @@ export function StorefrontHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/80 bg-card/95 backdrop-blur-sm">
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-6">
         <Link
           href="/"
           onClick={closeMenu}
@@ -52,15 +53,18 @@ export function StorefrontHeader() {
           </ul>
         </nav>
 
-        <button
-          type="button"
-          className="inline-flex items-center justify-center rounded-md border border-border px-3 py-2 text-sm text-foreground md:hidden"
-          aria-expanded={open}
-          aria-controls={menuId}
-          onClick={() => setOpen((value) => !value)}
-        >
-          {open ? "إغلاق" : "القائمة"}
-        </button>
+        <div className="flex items-center gap-2">
+          <CartBadge />
+          <button
+            type="button"
+            className="inline-flex items-center justify-center rounded-md border border-border px-3 py-2 text-sm text-foreground md:hidden"
+            aria-expanded={open}
+            aria-controls={menuId}
+            onClick={() => setOpen((value) => !value)}
+          >
+            {open ? "إغلاق" : "القائمة"}
+          </button>
+        </div>
       </div>
 
       {open ? (
@@ -90,6 +94,20 @@ export function StorefrontHeader() {
                 </li>
               );
             })}
+            <li>
+              <Link
+                href="/cart"
+                onClick={closeMenu}
+                aria-current={pathname === "/cart" ? "page" : undefined}
+                className={`block py-3 text-sm ${
+                  pathname === "/cart"
+                    ? "font-medium text-primary"
+                    : "text-foreground"
+                }`}
+              >
+                السلة
+              </Link>
+            </li>
           </ul>
         </nav>
       ) : null}

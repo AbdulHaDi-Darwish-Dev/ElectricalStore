@@ -66,6 +66,16 @@ Routes: `/`, `/categories`, `/categories/[id]`, `/products`, `/products/[id]` (G
 - SEO: `generateMetadata`, Product JSON-LD, sitemap includes public categories/products when the API is available
 - **Not in F3:** cart, checkout, auth, admin features
 
+## Frontend-only cart (F4)
+
+Route: `/cart` (not indexable).
+
+- **No backend cart** — Zustand + `localStorage` key `electricalstore.cart`, persistence `version: 1`
+- Cart lines keyed by `variantId`; `lastKnownUnitPrice` is a **display snapshot only**
+- Quantity rules use each variant’s `quantityIncrement` (Piece/Meter); float-normalized
+- Checkout Preview / Place Order are **not** called in F4 — F5 reconcilies price/stock/totals
+- Invalid/malformed persisted JSON resets to an empty cart
+
 ## Scripts
 
 ```bash
@@ -87,8 +97,11 @@ npm run build
 | `src/lib/api` | Fetch + ProblemDetails + query helpers |
 | `src/lib/auth` | Reserved — auth not implemented |
 | `src/features/catalog` | Public catalog DTOs + API |
+| `src/features/cart` | Frontend-only cart (Zustand + persistence) |
 | `src/features/shipping` | Public shipping DTOs + API |
 | `src/features/checkout` | Checkout preview DTOs + API |
+| `src/components/cart` | Cart badge, add-to-cart, cart page UI |
+| `src/components/storefront` | Catalog presentation components |
 
 ## Dev URLs
 

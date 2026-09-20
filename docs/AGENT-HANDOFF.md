@@ -51,4 +51,4 @@ Consumer ASP.NET Core app using Permixa NuGet IAM. Clean Architecture host.
 
 ## Current / next
 
-See [CURRENT-STATE.md](CURRENT-STATE.md). Backend MVP frozen; CORS for `http://localhost:3000` configured. Frontend F1–F3 done (Arabic/RTL shells, public API contracts, public catalog storefront). Next: Auth + cart (F4).
+See [CURRENT-STATE.md](CURRENT-STATE.md). Backend MVP frozen; CORS for `http://localhost:3000` configured. Frontend F1–F4 done (catalog storefront + frontend-only cart). Next: Checkout Preview + Place Order (F5).

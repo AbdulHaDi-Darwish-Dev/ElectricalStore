@@ -1,12 +1,24 @@
 import type { CatalogProductVariantDto } from "@/features/catalog";
-import { formatPrice, formatQuantityIncrement, formatSellingUnit } from "@/lib/format";
-import { StockBadge } from "./stock-badge";
+import { formatPrice, formatSellingUnit } from "@/lib/format";
+import { AddToCartControl } from "@/components/cart/add-to-cart-control";
 
 type ProductVariantsProps = {
+  productId: string;
+  productName: string;
+  primaryImageUrl: string | null;
   variants: CatalogProductVariantDto[];
 };
 
-export function ProductVariants({ variants }: ProductVariantsProps) {
+/**
+ * Server Component list of variants.
+ * Add-to-cart interaction is a small client boundary per row.
+ */
+export function ProductVariants({
+  productId,
+  productName,
+  primaryImageUrl,
+  variants,
+}: ProductVariantsProps) {
   const active = variants.filter((variant) => variant.isActive);
 
   if (active.length === 0) {
@@ -40,14 +52,12 @@ export function ProductVariants({ variants }: ProductVariantsProps) {
                   {formatSellingUnit(variant.sellingUnit)}
                 </dd>
               </div>
-              <div className="flex gap-2 sm:col-span-2">
-                <dt className="sr-only">زيادة الكمية</dt>
-                <dd>{formatQuantityIncrement(variant.quantityIncrement, variant.sellingUnit)}</dd>
-              </div>
             </dl>
-            <StockBadge
-              inStock={variant.isInStock}
-              availableQuantity={variant.availableQuantity}
+            <AddToCartControl
+              productId={productId}
+              productName={productName}
+              primaryImageUrl={primaryImageUrl}
+              variant={variant}
             />
           </li>
         ))}

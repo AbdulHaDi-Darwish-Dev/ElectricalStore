@@ -120,7 +120,12 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
             ) : null}
           </header>
 
-          <ProductVariants variants={product.variants} />
+          <ProductVariants
+            productId={product.id}
+            productName={product.name}
+            primaryImageUrl={getPrimaryProductImage(product.images)?.url ?? null}
+            variants={product.variants}
+          />
         </div>
       </div>
     </div>
