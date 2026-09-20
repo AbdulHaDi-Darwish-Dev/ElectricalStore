@@ -53,8 +53,9 @@
 11. Frontend foundation (Storefront + Back Office) against frozen API
 12. ~~Frontend F1 foundation scaffold~~ **done** (`frontend/` — Arabic/RTL, brand-agnostic shells, API/Query foundation; no business features yet)
 13. ~~Frontend F2 public API contract layer~~ **done** (catalog / shipping / checkout preview DTOs + modules; Vitest 4.1.11)
+14. ~~Frontend F3 public storefront catalog UI~~ **done** (home / categories / products; SEO; ISR-friendly `revalidate: 60`)
 
-Then: Auth phase + catalog Storefront UI (F3).
+Then: Auth phase + cart (F4).
 
 ## Access Management (Dashboard IAM)
 

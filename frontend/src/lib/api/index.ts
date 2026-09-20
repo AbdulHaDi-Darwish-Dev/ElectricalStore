@@ -11,3 +11,4 @@ export {
   isProblemDetails,
   type ProblemDetails,
 } from "./problem-details";
+export { isNotFoundError } from "./errors";

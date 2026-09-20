@@ -10,6 +10,11 @@ export const site = {
   locale: "ar",
   htmlLang: "ar",
   dir: "rtl" as const,
+  /**
+   * Neutral catalog SEO fallback when a product/category has no description.
+   * Editable centrally — not marketing copy.
+   */
+  catalogDescription: "تصفح تصنيفات ومنتجات المتجر.",
   /** Default document title template; uses temporary brand.name. */
   get defaultTitle() {
     return brand.name;

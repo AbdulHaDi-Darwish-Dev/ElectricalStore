@@ -6,4 +6,9 @@ export const storeConfig = {
   /** Business currency for display / SEO later. Not returned by the API. */
   currencyCode: "SYP",
   currencyLocale: "ar-SY",
+  /**
+   * Centralized Arabic presentation label for SYP.
+   * Do not hardcode currency text in components — use formatPrice().
+   */
+  currencyDisplay: "ل.س",
 } as const;

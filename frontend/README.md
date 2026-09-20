@@ -54,6 +54,18 @@ Feature-owned modules — types match backend JSON; no invented fields; no runti
 - HTTP errors throw `ApiError` (`status` + `code`); pages decide 404 UX later.
 - **Not in F2:** Place Order, auth, admin APIs, cart, catalog UI.
 
+## Public storefront catalog (F3)
+
+Routes: `/`, `/categories`, `/categories/[id]`, `/products`, `/products/[id]` (GUID ids; no slugs).
+
+- Server Components by default; client only for search form, gallery selection, mobile nav
+- Uses F2 catalog modules only (`getCategories` / `getCategory` / `getProducts` / `getProduct`)
+- Catalog GETs use `next: { revalidate: 60 }` (Data Cache). Do **not** set route-wide `force-dynamic` on the storefront layout — that opts fetches out of intended caching.
+- Build prerenders static catalog shells (`/`, `/categories`, sitemap) against the live API; keep ASP.NET running for production-oriented `next build` verification
+- Price display via `src/lib/format` + `storeConfig.currencyDisplay` (SYP)
+- SEO: `generateMetadata`, Product JSON-LD, sitemap includes public categories/products when the API is available
+- **Not in F3:** cart, checkout, auth, admin features
+
 ## Scripts
 
 ```bash

@@ -1,6 +1,5 @@
 /**
- * Placeholder navigation labels (Arabic UI copy).
- * Routes are shells only — no business pages yet.
+ * Storefront and admin navigation labels (Arabic UI copy).
  */
 
 export type NavItem = {
@@ -11,8 +10,8 @@ export type NavItem = {
 
 export const storefrontNav: NavItem[] = [
   { href: "/", label: "الرئيسية" },
-  { href: "#", label: "التصنيفات", disabled: true },
-  { href: "#", label: "المنتجات", disabled: true },
+  { href: "/categories", label: "التصنيفات" },
+  { href: "/products", label: "المنتجات" },
 ];
 
 export const adminNav: NavItem[] = [
