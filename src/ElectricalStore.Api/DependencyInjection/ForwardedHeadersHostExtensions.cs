@@ -55,9 +55,19 @@ public static class ForwardedHeadersHostExtensions
 
         var proxies = ParseProxies(hostOptions.KnownProxies, logger);
         var networks = ParseNetworks(hostOptions.KnownNetworks, logger);
+        var env = app.ApplicationServices.GetRequiredService<IHostEnvironment>();
 
         if (proxies.Count == 0 && networks.Count == 0)
         {
+            // Production fail-closed: Enabled without an explicit trust list must not boot.
+            // Non-Production: refuse to register middleware (do not trust arbitrary XFF).
+            if (env.IsProduction())
+            {
+                throw new InvalidOperationException(
+                    "ForwardedHeaders:Enabled=true in Production but KnownProxies/KnownNetworks are empty. " +
+                    "Set explicit KnownProxies for nginx and Next.js (see docker-compose.prod.yml).");
+            }
+
             logger.LogWarning(
                 "ForwardedHeaders:Enabled=true but KnownProxies/KnownNetworks are empty. " +
                 "Middleware NOT registered — refusing to trust forwarded headers.");
@@ -79,7 +89,6 @@ public static class ForwardedHeadersHostExtensions
         foreach (var network in networks)
             options.KnownNetworks.Add(network);
 
-        var env = app.ApplicationServices.GetRequiredService<IHostEnvironment>();
         logger.LogInformation(
             "ForwardedHeaders enabled ({Environment}). Trusted proxies={ProxyCount}, networks={NetworkCount}. Headers=X-Forwarded-For,X-Forwarded-Proto. ForwardLimit=1.",
             env.EnvironmentName,

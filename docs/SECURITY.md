@@ -9,7 +9,8 @@
 - Protect connection strings, JWT PEMs, bootstrap passwords, Resend API keys
 - Disable bootstrap after first successful Owner setup and remove OwnerPassword
 - Production must not auto-migrate by default (Development-only migrate in template)
-- Configure forwarded headers / TLS for your deployment — see [TRUSTED-CLIENT-IP.md](TRUSTED-CLIENT-IP.md)
+- Configure forwarded headers / TLS for your deployment — see [TRUSTED-CLIENT-IP.md](TRUSTED-CLIENT-IP.md) and [RELEASE-READINESS.md](RELEASE-READINESS.md)
+- SQL backup/restore before launch — see [BACKUP-RESTORE.md](BACKUP-RESTORE.md)
 
 ## Defaults in this template
 

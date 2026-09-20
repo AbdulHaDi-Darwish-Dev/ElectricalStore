@@ -10,6 +10,7 @@ import {
   LOCAL_DEV_LOGIN_CLIENT_IP,
   resolveForwardableClientIp,
   resolveLocalDevLoginClientIp,
+  resolveLoginClientIp,
 } from "@/lib/auth/client-ip";
 import { isSafeReturnTo, resolveSafeReturnTo } from "@/lib/auth/return-to";
 import { hasAnyPermission, hasPermission } from "@/lib/auth/permissions";
@@ -88,13 +89,17 @@ describe("login response stripping", () => {
 });
 
 describe("client IP forwarding (local — no trusted ingress)", () => {
+  const localEnv = { AUTH_TRUST_PROXY: "" } as unknown as NodeJS.ProcessEnv;
+
   it("ignores spoofed x-real-ip and always uses loopback", () => {
     const request = new Request("http://localhost:3000/api/auth/login", {
       headers: {
         "x-real-ip": "203.0.113.10",
       },
     });
-    expect(resolveForwardableClientIp(request)).toBe(LOCAL_DEV_LOGIN_CLIENT_IP);
+    expect(resolveForwardableClientIp(request, localEnv)).toBe(
+      LOCAL_DEV_LOGIN_CLIENT_IP,
+    );
     expect(resolveLocalDevLoginClientIp()).toBe("127.0.0.1");
   });
 
@@ -104,7 +109,7 @@ describe("client IP forwarding (local — no trusted ingress)", () => {
         "x-forwarded-for": "203.0.113.20",
       },
     });
-    expect(resolveForwardableClientIp(request)).toBe("127.0.0.1");
+    expect(resolveForwardableClientIp(request, localEnv)).toBe("127.0.0.1");
   });
 
   it("ignores Forwarded and combined spoof headers", () => {
@@ -115,23 +120,61 @@ describe("client IP forwarding (local — no trusted ingress)", () => {
         forwarded: "for=203.0.113.30",
       },
     });
-    expect(resolveForwardableClientIp(request)).toBe("127.0.0.1");
+    expect(resolveForwardableClientIp(request, localEnv)).toBe("127.0.0.1");
   });
 
   it("uses the approved local loopback development identity without headers", () => {
     expect(resolveLocalDevLoginClientIp()).toBe(LOCAL_DEV_LOGIN_CLIENT_IP);
   });
+});
 
-  it("does not fall back to trusting request headers (production forwarding unimplemented)", () => {
-    // Helper has no production header path — spoofed headers never become identity.
+describe("client IP forwarding (AUTH_TRUST_PROXY production)", () => {
+  const trustEnv = { AUTH_TRUST_PROXY: "true" } as unknown as NodeJS.ProcessEnv;
+
+  it("forwards only Nginx X-ElectricalStore-Client-Ip", () => {
     const request = new Request("https://store.example/api/auth/login", {
       headers: {
-        "x-real-ip": "198.51.100.1",
-        "x-forwarded-for": "198.51.100.2",
-        forwarded: "for=198.51.100.3",
+        "x-electricalstore-client-ip": "203.0.113.50",
+        "x-forwarded-for": "198.51.100.9",
+        "x-real-ip": "198.51.100.8",
       },
     });
-    expect(resolveForwardableClientIp(request)).toBe(LOCAL_DEV_LOGIN_CLIENT_IP);
+    expect(resolveLoginClientIp(request, trustEnv)).toBe("203.0.113.50");
+  });
+
+  it("rejects spoofed X-Forwarded-For when trusted header missing", () => {
+    const request = new Request("https://store.example/api/auth/login", {
+      headers: {
+        "x-forwarded-for": "198.51.100.2",
+        "x-real-ip": "198.51.100.1",
+      },
+    });
+    expect(() => resolveLoginClientIp(request, trustEnv)).toThrow(
+      /X-ElectricalStore-Client-Ip/,
+    );
+  });
+
+  it("rejects comma-separated client IP lists", () => {
+    const request = new Request("https://store.example/api/auth/login", {
+      headers: {
+        "x-electricalstore-client-ip": "203.0.113.50, 198.51.100.1",
+      },
+    });
+    expect(() => resolveLoginClientIp(request, trustEnv)).toThrow();
+  });
+
+  it("BFF contract: trusted custom header becomes the X-Forwarded-For value for ASP.NET", () => {
+    // login/route.ts sets headers["X-Forwarded-For"] = resolveLoginClientIp(request).
+    // ASP.NET never reads X-ElectricalStore-Client-Ip.
+    const request = new Request("https://store.example/api/auth/login", {
+      headers: {
+        "x-electricalstore-client-ip": "203.0.113.77",
+        "x-forwarded-for": "8.8.8.8",
+      },
+    });
+    const forAspNetXff = resolveLoginClientIp(request, trustEnv);
+    expect(forAspNetXff).toBe("203.0.113.77");
+    expect(forAspNetXff).not.toBe("8.8.8.8");
   });
 });
 

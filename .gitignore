@@ -28,6 +28,9 @@ coverage*
 .env
 .env.*
 !.env.example
+!.env.production.example
+.env.production
+deploy/certs/
 *.pem
 *.key
 *.pfx

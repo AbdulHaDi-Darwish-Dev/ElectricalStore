@@ -7,6 +7,10 @@ export {
 } from "./refresh-cookie";
 export {
   LOCAL_DEV_LOGIN_CLIENT_IP,
+  TRUSTED_CLIENT_IP_HEADER,
+  isAuthTrustProxyEnabled,
+  parseSingleIp,
+  resolveLoginClientIp,
   resolveForwardableClientIp,
   resolveLocalDevLoginClientIp,
 } from "./client-ip";

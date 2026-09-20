@@ -1,0 +1,124 @@
+# Production stack — do NOT use for local Windows Dev (see docker-compose.yml + dev.ps1).
+# Public ports: 80/443 on nginx only. Frontend, API, SQL stay on private network 10.80.0.0/24.
+#
+# Before first up:
+#   1. Copy deploy/env.production.example → .env.production (gitignored) and fill secrets
+#   2. Place TLS certs under deploy/certs/ (fullchain.pem, privkey.pem) or certbot volume
+#   3. docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
+
+name: electricalstore-prod
+
+networks:
+  es_prod:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.80.0.0/24
+
+volumes:
+  es_sql_data:
+  es_dp_keys:
+  es_certbot_www:
+
+services:
+  nginx:
+    image: nginx:1.27-alpine
+    depends_on:
+      - frontend
+      - api
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      STORE_HOST: ${STORE_HOST:?STORE_HOST required}
+    volumes:
+      - ./deploy/nginx/nginx.conf.template:/etc/nginx/templates/nginx.conf.template:ro
+      - ./deploy/nginx/docker-entrypoint.sh:/docker-entrypoint-custom.sh:ro
+      - ./deploy/certs:/etc/nginx/certs:ro
+      - es_certbot_www:/var/www/certbot:ro
+    networks:
+      es_prod:
+        ipv4_address: 10.80.0.10
+    entrypoint: ["/bin/sh", "/docker-entrypoint-custom.sh"]
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_SITE_URL: https://${STORE_HOST}
+        NEXT_PUBLIC_API_BASE_URL: https://${STORE_HOST}/aspnet
+    environment:
+      NODE_ENV: production
+      # Server-side BFF → API on private network (not via public Nginx)
+      API_BASE_URL: http://api:8080
+      NEXT_PUBLIC_SITE_URL: https://${STORE_HOST}
+      NEXT_PUBLIC_API_BASE_URL: https://${STORE_HOST}/aspnet
+      # Trust Nginx-overwritten client IP header for Login rate-limit identity
+      AUTH_TRUST_PROXY: "true"
+      SITE_URL: https://${STORE_HOST}
+    networks:
+      es_prod:
+        ipv4_address: 10.80.0.20
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: src/ElectricalStore.Api/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Default: ${ConnectionStrings__Default:?}
+      Permixa__Jwt__Issuer: ${Permixa__Jwt__Issuer:?}
+      Permixa__Jwt__Audience: ${Permixa__Jwt__Audience:?}
+      Permixa__Jwt__PrivateKeyPem: ${Permixa__Jwt__PrivateKeyPem:?}
+      Permixa__Jwt__PublicKeyPem: ${Permixa__Jwt__PublicKeyPem:?}
+      Permixa__Bootstrap__Enabled: "false"
+      Permixa__AppSeed__Enabled: "false"
+      # Same-origin /aspnet path usually needs no browser CORS; keep deny-by-default unless set.
+      Cors__AllowedOrigins__0: ${Cors__AllowedOrigins__0:-}
+      ForwardedHeaders__Enabled: "true"
+      # Only the two legitimate immediate peers that emit X-Forwarded-For to the API.
+      # 10.80.0.10 = nginx (direct /aspnet/*). 10.80.0.20 = Next.js Login BFF.
+      # Do NOT trust the whole 10.80.0.0/24 (SQL and future services must not be proxies).
+      ForwardedHeaders__KnownProxies__0: "10.80.0.10"
+      ForwardedHeaders__KnownProxies__1: "10.80.0.20"
+      DataProtection__KeysPath: /var/lib/electricalstore/dp-keys
+      Cloudinary__CloudName: ${Cloudinary__CloudName:-}
+      Cloudinary__ApiKey: ${Cloudinary__ApiKey:-}
+      Cloudinary__ApiSecret: ${Cloudinary__ApiSecret:-}
+    volumes:
+      - es_dp_keys:/var/lib/electricalstore/dp-keys
+    networks:
+      es_prod:
+        ipv4_address: 10.80.0.30
+    # SQL port intentionally NOT published
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    restart: unless-stopped
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?}
+    volumes:
+      - es_sql_data:/var/opt/mssql
+    networks:
+      es_prod:
+        ipv4_address: 10.80.0.40
+    # No host ports — SQL is private-network only
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q \"SELECT 1\" || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    restart: unless-stopped

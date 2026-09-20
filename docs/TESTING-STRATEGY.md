@@ -10,6 +10,9 @@
 | Application.Tests | Use cases with mocks |
 | Infrastructure.Tests | EF / repositories via Testcontainers SQL |
 | IntegrationTests | WebApplicationFactory + Testcontainers; authz happy path |
+| Frontend Vitest | Unit/contract tests under `frontend/src/**/*.test.ts` |
+| Frontend Playwright | Local smoke under `frontend/e2e` (manual; needs running stack) |
 
 Integration tests do **not** depend on `docker compose` services.
 Resend variants replace `IEmailSender` with a capturing fake — no real emails in CI.
+Playwright is **not** in default GitHub Actions (no production/staging stack in CI).

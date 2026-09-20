@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace ElectricalStore.Infrastructure;
 
@@ -59,9 +60,24 @@ public static class DependencyInjection
         services.AddSingleton<IGuestOrderTokenService, GuestOrderTokenService>();
 
         // Persist keys so guest Place Order idempotency can Unprotect across process restarts.
+        // Production MUST set DataProtection:KeysPath to a durable mounted volume.
         var keysPath = configuration["DataProtection:KeysPath"];
+        var isProduction = string.Equals(
+            Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"),
+            Environments.Production,
+            StringComparison.OrdinalIgnoreCase);
         if (string.IsNullOrWhiteSpace(keysPath))
+        {
+            if (isProduction)
+            {
+                throw new InvalidOperationException(
+                    "Production requires DataProtection:KeysPath (durable volume). " +
+                    "Refusing ephemeral BaseDirectory keys.");
+            }
+
             keysPath = Path.Combine(AppContext.BaseDirectory, "dp-keys");
+        }
+
         Directory.CreateDirectory(keysPath);
         services.AddDataProtection()
             .PersistKeysToFileSystem(new DirectoryInfo(keysPath))

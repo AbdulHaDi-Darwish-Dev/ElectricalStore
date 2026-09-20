@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerApiBaseUrl, joinApiUrl } from "@/lib/api/config";
 import { isProblemDetails } from "@/lib/api/problem-details";
-import { resolveLocalDevLoginClientIp } from "@/lib/auth/client-ip";
+import { resolveLoginClientIp } from "@/lib/auth/client-ip";
 import {
   AUTH_REFRESH_COOKIE_NAME,
   authRefreshCookieOptions,
@@ -62,8 +62,22 @@ export async function POST(request: Request) {
     );
   }
 
-  // Local-only loopback identity — never from browser forwarding headers.
-  const clientIp = resolveLocalDevLoginClientIp();
+  // Production: Nginx-overwritten X-ElectricalStore-Client-Ip only.
+  // Local: loopback identity — never from browser forwarding headers.
+  let clientIp: string;
+  try {
+    clientIp = resolveLoginClientIp(request);
+  } catch {
+    return NextResponse.json(
+      {
+        status: 503,
+        title: "ServiceUnavailable",
+        code: "TrustedClientIpUnavailable",
+        detail: "تعذر تحديد عنوان العميل الموثوق لتسجيل الدخول.",
+      },
+      { status: 503, headers: PRIVATE_NO_STORE_HEADERS },
+    );
+  }
 
   const upstream = await fetch(joinApiUrl("/auth/login", getServerApiBaseUrl()), {
     method: "POST",

@@ -40,6 +40,8 @@
 
 ## Next work (backend sequence)
 
+Hardening & Release Readiness — see [RELEASE-READINESS.md](RELEASE-READINESS.md). Production Auth remains gated on trusted ingress.
+
 1. ~~Inventory~~ **done**
 2. ~~Shipping / Delivery Zones~~ **done**
 3. ~~Persisted backend Cart~~ **rejected** — cart is frontend-only
@@ -50,7 +52,7 @@
 8. ~~SampleNotes cleanup~~ **done** (`DropSampleNotes`)
 9. ~~Operational logging~~ **done**
 10. ~~CORS for Next.js Dev origin~~ **done** (`Cors:AllowedOrigins`)
-11. Frontend foundation (Storefront + Back Office) against frozen API
+11. ~~Frontend foundation~~ **done** (F1–F7.7)
 12. ~~Frontend F1 foundation scaffold~~ **done** (`frontend/` — Arabic/RTL, brand-agnostic shells, API/Query foundation; no business features yet)
 13. ~~Frontend F2 public API contract layer~~ **done** (catalog / shipping / checkout preview DTOs + modules; Vitest 4.1.11)
 14. ~~Frontend F3 public storefront catalog UI~~ **done** (home / categories / products; SEO; ISR-friendly `revalidate: 60`)
@@ -65,16 +67,18 @@
 23. ~~Frontend F7.4 Admin Shipping management~~ **done** (`78d5c5d`)
 24. ~~Frontend F7.5 Admin Orders management~~ **done** (`67ff327`)
 25. ~~Frontend F7.6 Admin Settings management~~ **done** (`572bf8f`)
-26. ~~Frontend F7.7 Admin IAM management~~ **done**
+26. ~~Frontend F7.7 Admin IAM management~~ **done** (`5b473f4`)
+27. ~~Hardening & Release Readiness baseline~~ **locked** ([RELEASE-READINESS.md](RELEASE-READINESS.md), [PRODUCTION.md](PRODUCTION.md)) — HIGH launch-verification items remain open (admin/limited E2E, nginx -t on rendered config, real VPS/TLS smoke)
 
 ### Authentication readiness gate
 
 | Surface | Status |
 |---------|--------|
 | **Local Auth** | Ready (Dev ForwardedHeaders trusts loopback; Login BFF forwards `127.0.0.1` only) |
-| **Production Auth / Admin go-live** | **BLOCKED** until trusted ingress + sanitized client IP + explicit `KnownProxies`/`KnownNetworks` + verified `RemoteIpAddress` before RateLimiter |
+| **Production Auth trust chain (code)** | **Approved / locked:** Nginx overwrite → Next `AUTH_TRUST_PROXY` + fresh XFF → ASP.NET `KnownProxies` `10.80.0.10`/`10.80.0.20` (`ForwardLimit=1`). Spoof/partition proofs in `ForwardedHeadersApiTests` + `auth-security.test.ts`. |
+| **Production Auth / Admin go-live** | Operator host + HIGH launch-verification items in [RELEASE-READINESS.md](RELEASE-READINESS.md) — **not** falsely marked complete |
 
-Do **not** describe F6/F7 as production-ready. Keep Production `ForwardedHeaders:Enabled=false` until ops configures trust.
+Do **not** declare a real production launch successful until HIGH launch-verification items are actually executed.
 
 
 ## Access Management (Dashboard IAM)

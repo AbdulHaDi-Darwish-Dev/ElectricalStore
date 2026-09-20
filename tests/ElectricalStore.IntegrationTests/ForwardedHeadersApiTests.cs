@@ -13,12 +13,22 @@ namespace ElectricalStore.IntegrationTests;
 /// </summary>
 public sealed class ForwardedHeadersApiTests :
     IClassFixture<ForwardedHeadersWebApplicationFactory>,
-    IClassFixture<ForwardedHeadersDisabledWebApplicationFactory>
+    IClassFixture<ForwardedHeadersDisabledWebApplicationFactory>,
+    IClassFixture<ForwardedHeadersDualProxyWebApplicationFactory>
 {
     private const string TrustedProxy = "10.10.0.2";
     private const string UntrustedPeer = "198.51.100.10";
     private const string ClientA = "203.0.113.50";
     private const string ClientB = "203.0.113.60";
+
+    /// <summary>Matches docker-compose.prod.yml fixed ipv4_address for nginx.</summary>
+    private const string ProdNginxProxy = "10.80.0.10";
+
+    /// <summary>Matches docker-compose.prod.yml fixed ipv4_address for Next.js.</summary>
+    private const string ProdNextBffProxy = "10.80.0.20";
+
+    /// <summary>Matches docker-compose.prod.yml SQL — must NOT be a KnownProxy.</summary>
+    private const string ProdSqlContainer = "10.80.0.40";
 
     private static readonly JsonSerializerOptions Json = new()
     {
@@ -27,13 +37,16 @@ public sealed class ForwardedHeadersApiTests :
 
     private readonly ForwardedHeadersWebApplicationFactory _factory;
     private readonly ForwardedHeadersDisabledWebApplicationFactory _disabledFactory;
+    private readonly ForwardedHeadersDualProxyWebApplicationFactory _dualProxyFactory;
 
     public ForwardedHeadersApiTests(
         ForwardedHeadersWebApplicationFactory factory,
-        ForwardedHeadersDisabledWebApplicationFactory disabledFactory)
+        ForwardedHeadersDisabledWebApplicationFactory disabledFactory,
+        ForwardedHeadersDualProxyWebApplicationFactory dualProxyFactory)
     {
         _factory = factory;
         _disabledFactory = disabledFactory;
+        _dualProxyFactory = dualProxyFactory;
     }
 
     [Fact]
@@ -105,6 +118,56 @@ public sealed class ForwardedHeadersApiTests :
 
         Assert.Equal(NormalizeIp(body1!.RemoteIp), NormalizeIp(body2!.RemoteIp));
         Assert.Equal(ClientA, NormalizeIp(body1.RemoteIp));
+    }
+
+    [Fact]
+    public async Task CustomClientIpHeader_IsIgnoredByForwardedHeaders_RemoteIpUsesXffOnly()
+    {
+        // ASP.NET has NO middleware for X-ElectricalStore-Client-Ip.
+        // That header is Next-BFF-only; RemoteIp comes solely from trusted X-Forwarded-For.
+        var client = _factory.CreateClient();
+
+        using var request = CreateRemoteIpRequest(TrustedProxy, ClientA);
+        request.Headers.TryAddWithoutValidation(
+            "X-ElectricalStore-Client-Ip",
+            "8.8.8.8");
+
+        var response = await client.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadFromJsonAsync<RemoteIpDto>(Json);
+        Assert.Equal(ClientA, NormalizeIp(body!.RemoteIp));
+        Assert.NotEqual("8.8.8.8", NormalizeIp(body.RemoteIp));
+    }
+
+    [Fact]
+    public async Task DualKnownProxies_NginxAndNextBff_EachRewriteRemoteIp()
+    {
+        var client = _dualProxyFactory.CreateClient();
+
+        using var viaNginx = CreateRemoteIpRequest(ProdNginxProxy, ClientA);
+        using var viaNext = CreateRemoteIpRequest(ProdNextBffProxy, ClientB);
+
+        var nginxBody = await (await client.SendAsync(viaNginx)).Content
+            .ReadFromJsonAsync<RemoteIpDto>(Json);
+        var nextBody = await (await client.SendAsync(viaNext)).Content
+            .ReadFromJsonAsync<RemoteIpDto>(Json);
+
+        Assert.Equal(ClientA, NormalizeIp(nginxBody!.RemoteIp));
+        Assert.Equal(ClientB, NormalizeIp(nextBody!.RemoteIp));
+    }
+
+    [Fact]
+    public async Task SqlContainerIp_IsNotATrustedProxy_SpoofedXffIgnored()
+    {
+        var client = _dualProxyFactory.CreateClient();
+
+        // 10.80.0.40 is SQL in prod compose — must NOT be KnownProxies.
+        using var request = CreateRemoteIpRequest(ProdSqlContainer, ClientA);
+        var response = await client.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadFromJsonAsync<RemoteIpDto>(Json);
+        Assert.Equal(ProdSqlContainer, NormalizeIp(body!.RemoteIp));
+        Assert.NotEqual(ClientA, NormalizeIp(body.RemoteIp));
     }
 
     [Fact]
@@ -194,6 +257,23 @@ public sealed class ForwardedHeadersDisabledWebApplicationFactory : AppWebApplic
         base.ConfigureWebHost(builder);
         builder.UseSetting("ForwardedHeaders:Enabled", "false");
         builder.UseSetting("ForwardedHeaders:KnownProxies:0", "10.10.0.2");
+        builder.UseSetting("Testing:MapRemoteIpEndpoint", "true");
+        builder.UseSetting("Testing:AllowConnectingIpOverride", "true");
+    }
+}
+
+/// <summary>
+/// Production-shaped trust: only nginx (10.80.0.10) and Next BFF (10.80.0.20).
+/// SQL 10.80.0.40 is intentionally omitted.
+/// </summary>
+public sealed class ForwardedHeadersDualProxyWebApplicationFactory : AppWebApplicationFactory
+{
+    protected override void ConfigureWebHost(Microsoft.AspNetCore.Hosting.IWebHostBuilder builder)
+    {
+        base.ConfigureWebHost(builder);
+        builder.UseSetting("ForwardedHeaders:Enabled", "true");
+        builder.UseSetting("ForwardedHeaders:KnownProxies:0", "10.80.0.10");
+        builder.UseSetting("ForwardedHeaders:KnownProxies:1", "10.80.0.20");
         builder.UseSetting("Testing:MapRemoteIpEndpoint", "true");
         builder.UseSetting("Testing:AllowConnectingIpOverride", "true");
     }

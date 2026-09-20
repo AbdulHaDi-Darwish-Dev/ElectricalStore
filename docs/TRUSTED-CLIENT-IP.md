@@ -132,10 +132,30 @@ ForwardedHeaders does **not** widen CORS. Spoofed `X-Forwarded-For` from a publi
 
 | Situation | Result |
 |-----------|--------|
-| Disabled / empty trust | RemoteIp = TCP peer; no spoof; Next-proxied logins share Next’s IP bucket |
+| Disabled / empty trust (non-Production) | Middleware not registered; RemoteIp = TCP peer; no spoof |
+| Enabled + empty Known* in Production | **Startup throw** (fail-closed) |
 | Enabled + correct KnownProxies + sanitized XFF | RemoteIp = client; per-client login partitions |
-| Enabled + wrong/missing trust | Same as disabled for untrusted peers; forwarded headers ignored |
+| Enabled + wrong/missing trust | Forwarded headers ignored for untrusted peers |
+
+### Production compose KnownProxies
+
+Fixed addresses in `docker-compose.prod.yml`:
+
+| IP | Service | Trusted? |
+|----|---------|----------|
+| 10.80.0.10 | nginx | **Yes** — direct `/aspnet` |
+| 10.80.0.20 | frontend (Next BFF) | **Yes** — login BFF emits fresh XFF |
+| 10.80.0.30 | api | N/A (self) |
+| 10.80.0.40 | sqlserver | **No** |
+
+Login BFF: Next reads Nginx `X-ElectricalStore-Client-Ip`, then sets ASP.NET `X-Forwarded-For` (ASP.NET does not consume the custom header).
+
+## Related
+
+- Production topology / compose / Nginx: [PRODUCTION.md](./PRODUCTION.md)
+- Recommended production topology and launch checklist: [RELEASE-READINESS.md](./RELEASE-READINESS.md)
+- Backup/restore: [BACKUP-RESTORE.md](./BACKUP-RESTORE.md)
 
 ## Tests
 
-`ForwardedHeadersApiTests` cover trusted rewrite, untrusted spoof rejection, disabled behaviour, distinct/same client IPs, and Login 429 partition separation for two forwarded clients behind one trusted proxy.
+`ForwardedHeadersApiTests` cover trusted rewrite, untrusted spoof rejection, disabled behaviour, dual KnownProxies (nginx+Next), custom client-IP header ignored by ASP.NET, SQL IP not trusted, distinct/same client IPs, and Login 429 partition separation for two forwarded clients behind one trusted proxy.

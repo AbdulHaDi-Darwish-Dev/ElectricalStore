@@ -51,4 +51,4 @@ Consumer ASP.NET Core app using Permixa NuGet IAM. Clean Architecture host.
 
 ## Current / next
 
-See [CURRENT-STATE.md](CURRENT-STATE.md). Frontend F1–F7.7 done locally (Admin feature set complete). **Production Auth/Admin go-live remains BLOCKED** until trusted ingress + KnownProxies/Networks (`docs/TRUSTED-CLIENT-IP.md`). Admin UX uses effective `permissions[]` only — never role names.
+See [CURRENT-STATE.md](CURRENT-STATE.md). Frontend F1–F7.7 done. **Hardening baseline locked** ([PRODUCTION.md](PRODUCTION.md), [RELEASE-READINESS.md](RELEASE-READINESS.md)): Nginx → private Next/API, `KnownProxies` = `10.80.0.10` + `10.80.0.20` only. Next steps: operator host deploy + HIGH launch-verification (admin/limited E2E, nginx -t, real VPS/TLS smoke).
