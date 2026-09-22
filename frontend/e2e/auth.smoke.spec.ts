@@ -4,7 +4,10 @@ import {
   hasAdminCreds,
   hasCustomerCreds,
   hasLimitedCreds,
+  isAuthenticatedSession,
   localStackReady,
+  loginAs,
+  logout,
 } from "./helpers";
 
 test.describe("auth smoke", () => {
@@ -30,7 +33,7 @@ test.describe("auth smoke", () => {
     const pass = page.locator('input[type="password"]').first();
     await user.fill("nobody-e2e@example.invalid");
     await pass.fill("definitely-wrong-password-!!!");
-        await page.getByRole("button", { name: "تسجيل الدخول" }).click();
+    await page.getByRole("button", { name: "تسجيل الدخول" }).click();
     await expect(page).toHaveURL(/login/);
     await page.goto("/account");
     await expect(page).toHaveURL(/login/);
@@ -38,12 +41,7 @@ test.describe("auth smoke", () => {
 
   test("login success reaches account when creds provided", async ({ page }) => {
     test.skip(!hasCustomerCreds(), "Set E2E_CUSTOMER_EMAIL / E2E_CUSTOMER_PASSWORD");
-    await page.goto("/login");
-    const user = page.locator("#emailOrUserName");
-    const pass = page.locator('input[type="password"]').first();
-    await user.fill(e2eEnv.customerEmail);
-    await pass.fill(e2eEnv.customerPassword);
-        await page.getByRole("button", { name: "تسجيل الدخول" }).click();
+    await loginAs(page, e2eEnv.customerEmail, e2eEnv.customerPassword);
     await expect(page).toHaveURL(/account|\/$/, { timeout: 30_000 });
     await page.goto("/account");
     await expect(page).not.toHaveURL(/login/);
@@ -51,20 +49,9 @@ test.describe("auth smoke", () => {
 
   test("logout returns to anonymous for protected account", async ({ page }) => {
     test.skip(!hasCustomerCreds(), "Set E2E_CUSTOMER_EMAIL / E2E_CUSTOMER_PASSWORD");
-    await page.goto("/login");
-    const user = page.locator("#emailOrUserName");
-    const pass = page.locator('input[type="password"]').first();
-    await user.fill(e2eEnv.customerEmail);
-    await pass.fill(e2eEnv.customerPassword);
-    await page.getByRole("button", { name: "تسجيل الدخول" }).click();
+    await loginAs(page, e2eEnv.customerEmail, e2eEnv.customerPassword);
     await expect(page).toHaveURL(/account|\/$/, { timeout: 30_000 });
-    // Header shows "تسجيل الخروج" once auth store is ready.
-    const logout = page.getByRole("button", { name: /تسجيل الخروج|logout/i });
-    await expect(logout.first()).toBeVisible({ timeout: 15_000 });
-    await logout.first().click();
-    await expect(
-      page.getByRole("link", { name: /تسجيل الدخول|login/i }).first(),
-    ).toBeVisible({ timeout: 15_000 });
+    await logout(page);
     await page.goto("/account");
     await expect(page).toHaveURL(/login/);
   });
@@ -76,31 +63,22 @@ test.describe("auth smoke", () => {
 
   test("admin creds can open admin shell", async ({ page }) => {
     test.skip(!hasAdminCreds(), "Set E2E_ADMIN_EMAIL / E2E_ADMIN_PASSWORD");
-    await page.goto("/login");
-    const user = page.locator("#emailOrUserName");
-    const pass = page.locator('input[type="password"]').first();
-    await user.fill(e2eEnv.adminEmail);
-    await pass.fill(e2eEnv.adminPassword);
-        await page.getByRole("button", { name: "تسجيل الدخول" }).click();
+    await loginAs(page, e2eEnv.adminEmail, e2eEnv.adminPassword);
     await page.goto("/admin");
     await expect(page).not.toHaveURL(/login/, { timeout: 30_000 });
     await expect(page.locator("body")).toContainText(/إدارة|لوحة|admin/i);
   });
 
-  test("limited account denied admin does not clear to anonymous loop", async ({
+  test("limited account sees access denied on restricted module but stays signed in", async ({
     page,
   }) => {
     test.skip(!hasLimitedCreds(), "Set E2E_LIMITED_EMAIL / E2E_LIMITED_PASSWORD");
-    await page.goto("/login");
-    const user = page.locator("#emailOrUserName");
-    const pass = page.locator('input[type="password"]').first();
-    await user.fill(e2eEnv.limitedEmail);
-    await pass.fill(e2eEnv.limitedPassword);
-        await page.getByRole("button", { name: "تسجيل الدخول" }).click();
-    await page.waitForTimeout(1500);
-    await page.goto("/admin");
-    // Either redirected away from admin or access-denied UX — must not wipe session solely for 403
-    const url = page.url();
-    expect(url.includes("/admin") || url.includes("/login") || url.includes("/account")).toBeTruthy();
+    await loginAs(page, e2eEnv.limitedEmail, e2eEnv.limitedPassword);
+    await expect(page).toHaveURL(/account|\/$/, { timeout: 30_000 });
+
+    await page.goto("/admin/categories");
+    await expect(page.getByText("رفض الوصول")).toBeVisible({ timeout: 15_000 });
+
+    expect(await isAuthenticatedSession(page)).toBeTruthy();
   });
 });

@@ -12,6 +12,17 @@ const nextConfig: NextConfig = {
         hostname: "res.cloudinary.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "picsum.photos",
+        pathname: "/**",
+      },
+      // Legacy local fixture host (migrated to picsum); keep allowlist if any rows remain.
+      {
+        protocol: "https",
+        hostname: "img.test",
+        pathname: "/**",
+      },
     ],
   },
 };

@@ -43,5 +43,13 @@ public static class DevelopmentInitializationExtensions
             await scope.ServiceProvider.GetRequiredService<AppPermissionSeeder>()
                 .SeedAsync(cancellationToken);
         }
+
+        if (app.Configuration.GetValue($"{LocalDevFixtureOptions.SectionName}:Enabled", false))
+        {
+            await scope.ServiceProvider.GetRequiredService<LocalDevCatalogFixtureSeeder>()
+                .SeedAsync(cancellationToken);
+            await scope.ServiceProvider.GetRequiredService<LocalDevAccountFixtureSeeder>()
+                .SeedAsync(cancellationToken);
+        }
     }
 }

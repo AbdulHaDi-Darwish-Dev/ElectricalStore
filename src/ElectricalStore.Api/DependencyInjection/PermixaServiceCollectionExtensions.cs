@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ElectricalStore.Api.Hosting;
+using ElectricalStore.Application.Abstractions;
 using Permixa.AspNetCore.Authentication;
 using Permixa.AspNetCore.Authorization;
 using Permixa.AspNetCore.ProblemDetails;
@@ -64,11 +65,20 @@ public static class PermixaServiceCollectionExtensions
         {
             o.AddSlidingWindow("Login", p =>
             {
-                p.PermitLimit = 20;
+                // Local E2E performs many BFF logins from one loopback RemoteIp.
+                // Widen only when LocalDevFixtures is enabled (never in Production compose).
+                var fixturesEnabled = configuration.GetValue(
+                    $"{LocalDevFixtureOptions.SectionName}:Enabled", false);
+                p.PermitLimit = LocalDevLoginRateLimits.ResolvePermitLimit(
+                    environment.IsDevelopment(),
+                    fixturesEnabled);
                 p.Window = TimeSpan.FromMinutes(1);
                 p.Partition = PermixaRateLimitPartitionKind.RemoteIp;
             });
         });
+
+        services.Configure<LocalDevFixtureOptions>(
+            configuration.GetSection(LocalDevFixtureOptions.SectionName));
 
         if (environment.IsDevelopment()
             && configuration.GetValue("Permixa:AppSeed:Enabled", false))
@@ -76,6 +86,17 @@ public static class PermixaServiceCollectionExtensions
             // Privileged Development initialization only — not a general admin service.
             services.AddScoped<AppPermissionSeeder>();
         }
+
+        if (environment.IsDevelopment()
+            && configuration.GetValue($"{LocalDevFixtureOptions.SectionName}:Enabled", false))
+        {
+            services.AddScoped<LocalDevCatalogFixtureSeeder>();
+            services.AddScoped<LocalDevAccountFixtureSeeder>();
+        }
+
+        services.AddScoped<ICustomerIdentityLookup, PermixaCustomerIdentityLookup>();
+        services.AddScoped<ICustomerIdentityCompensation, PermixaCustomerIdentityCompensation>();
+        services.AddScoped<RegisterCustomerOrchestrator>();
 
         return services;
     }

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ElectricalStore.Domain.Catalog.Categories;
 using ElectricalStore.Domain.Catalog.Products;
+using ElectricalStore.Domain.Customers;
 using ElectricalStore.Domain.Inventory;
 using ElectricalStore.Domain.Ordering;
 using ElectricalStore.Domain.Shipping;
@@ -39,6 +40,8 @@ public sealed class AppDbContext : DbContext
     public DbSet<OrderingSettings> OrderingSettings => Set<OrderingSettings>();
 
     public DbSet<OrderPlacementIdempotency> OrderPlacementIdempotencies => Set<OrderPlacementIdempotency>();
+
+    public DbSet<CustomerProfile> CustomerProfiles => Set<CustomerProfile>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

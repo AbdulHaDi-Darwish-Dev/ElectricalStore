@@ -190,6 +190,32 @@ namespace ElectricalStore.Infrastructure.Persistence.Migrations
                     b.ToTable("ProductVariants", (string)null);
                 });
 
+            modelBuilder.Entity("ElectricalStore.Domain.Customers.CustomerProfile", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("UserId");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_CustomerProfiles_UserId");
+
+                    b.ToTable("CustomerProfiles", (string)null);
+                });
+
             modelBuilder.Entity("ElectricalStore.Domain.Inventory.InventoryAdjustment", b =>
                 {
                     b.Property<Guid>("Id")

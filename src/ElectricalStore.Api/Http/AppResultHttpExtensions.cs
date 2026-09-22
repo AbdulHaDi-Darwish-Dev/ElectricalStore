@@ -105,6 +105,15 @@ public static class AppResultHttpExtensions
             "Ordering.InvalidIdempotencyKey" => StatusCodes.Status400BadRequest,
             "Ordering.IdempotencyReplayUnavailable" => StatusCodes.Status409Conflict,
 
+            "Customer.FullNameRequired" => StatusCodes.Status400BadRequest,
+            "Customer.FullNameTooLong" => StatusCodes.Status400BadRequest,
+            "Customer.EmailRequired" => StatusCodes.Status400BadRequest,
+            "Customer.PasswordRequired" => StatusCodes.Status400BadRequest,
+            "Customer.ActorRequired" => StatusCodes.Status401Unauthorized,
+            "Customer.IdentityNotFound" => StatusCodes.Status404NotFound,
+            "Customer.ProfileCreateFailed" => StatusCodes.Status500InternalServerError,
+            "Customer.RegistrationCompensationFailed" => StatusCodes.Status500InternalServerError,
+
             _ => StatusCodes.Status400BadRequest
         };
 }

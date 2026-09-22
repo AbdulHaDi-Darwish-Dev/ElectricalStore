@@ -1,15 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { e2eEnv, hasAdminCreds, localStackReady } from "./helpers";
-
-async function loginAdmin(page: import("@playwright/test").Page) {
-  await page.goto("/login");
-  const user = page.locator("#emailOrUserName");
-  const pass = page.locator('input[type="password"]').first();
-  await user.fill(e2eEnv.adminEmail);
-  await pass.fill(e2eEnv.adminPassword);
-  await page.getByRole("button", { name: "تسجيل الدخول" }).click();
-  await page.waitForTimeout(1500);
-}
+import {
+  e2eEnv,
+  hasAdminCreds,
+  localStackReady,
+  loginAs,
+} from "./helpers";
 
 test.describe("admin module smoke", () => {
   test.beforeEach(async () => {
@@ -18,7 +13,13 @@ test.describe("admin module smoke", () => {
   });
 
   test("critical admin routes load without crash", async ({ page }) => {
-    await loginAdmin(page);
+    await loginAs(page, e2eEnv.adminEmail, e2eEnv.adminPassword);
+    await page.goto("/admin");
+    await expect(page).not.toHaveURL(/login/, { timeout: 30_000 });
+    await expect(page.getByRole("heading", { name: /لوحة التحكم/ })).toBeVisible({
+      timeout: 20_000,
+    });
+
     const routes = [
       "/admin",
       "/admin/categories",
@@ -28,11 +29,15 @@ test.describe("admin module smoke", () => {
       "/admin/orders",
       "/admin/settings",
       "/admin/access",
+      "/admin/access/users",
+      "/admin/access/roles",
+      "/admin/access/permissions",
+      "/admin/access/audit",
     ];
     for (const route of routes) {
       await page.goto(route);
+      await expect(page).not.toHaveURL(/login/);
       await expect(page.locator("body")).toBeVisible();
-      // Permission gate may deny some modules; page must still render shell/denied UX
       await expect(page.locator("body")).not.toContainText("Application error");
     }
   });

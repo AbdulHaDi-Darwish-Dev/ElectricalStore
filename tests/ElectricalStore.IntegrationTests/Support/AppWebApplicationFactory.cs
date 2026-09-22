@@ -81,6 +81,8 @@ public class AppWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLi
         builder.UseSetting("Permixa:AppSeed:Enabled", "true");
         builder.UseSetting("Permixa:Authentication:RequireConfirmedEmail", "false");
         builder.UseSetting("Media:MaxImageSizeMb", "5");
+        // Keep production-shaped Login rate limit (20/min) in integration tests.
+        builder.UseSetting("LocalDevFixtures:Enabled", "false");
 
         builder.ConfigureServices(services =>
         {

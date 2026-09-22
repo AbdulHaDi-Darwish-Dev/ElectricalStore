@@ -10,6 +10,7 @@ export const loginFormSchema = z.object({
 
 export type LoginFormValues = z.infer<typeof loginFormSchema>;
 
+/** @deprecated Prefer customerRegisterFormSchema from account-profile (FullName UX). */
 export const registerFormSchema = z
   .object({
     userName: z

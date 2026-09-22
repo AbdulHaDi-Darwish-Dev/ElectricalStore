@@ -14,5 +14,11 @@ public sealed class MediaOptions
         "image/webp"
     ];
 
+    /// <summary>
+    /// When true (Development only), use in-memory image storage if Cloudinary is not configured.
+    /// Never enable in Production.
+    /// </summary>
+    public bool AllowLocalDevStorage { get; set; }
+
     public long MaxImageSizeBytes => Math.Max(1, MaxImageSizeMb) * 1024L * 1024L;
 }

@@ -148,13 +148,14 @@ public sealed class MigrationIsolationTests : IClassFixture<AppWebApplicationFac
 
         hist.CommandText = "SELECT COUNT(*) FROM __AppMigrationsHistory;";
         var appMigrations = Convert.ToInt32(await hist.ExecuteScalarAsync());
-        Assert.Equal(11, appMigrations);
+        Assert.Equal(12, appMigrations);
 
         Assert.Contains("Orders", tables);
         Assert.Contains("OrderItems", tables);
         Assert.Contains("OrderModificationAudits", tables);
         Assert.Contains("OrderingSettings", tables);
         Assert.Contains("OrderPlacementIdempotencies", tables);
+        Assert.Contains("CustomerProfiles", tables);
 
         Assert.Same(
             permixaDb.Database.GetConnectionString(),

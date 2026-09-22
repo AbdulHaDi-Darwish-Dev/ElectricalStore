@@ -10,12 +10,12 @@
 |------|--------|
 | Template origin | `dotnet new permixa-app` |
 | Framework | .NET 8 + Permixa `0.1.0-preview.2` |
-| Business features | **Categories** + **Product/Variant** + **Media** + **Inventory** + **Shipping** + **Checkout Preview** + **Orders** MVP + **Access Management** (thin `/admin/access` adapters over Permixa) |
+| Business features | **Categories** + **Product/Variant** + **Media** + **Inventory** + **Shipping** + **Checkout Preview** + **Orders** MVP + **Access Management** (thin `/admin/access` adapters over Permixa) + **CustomerProfile** (`/account/*`; FullName store-owned; identity stays in Permixa) |
 | Permissions | App: `Categories.Manage`, `Products.Manage`, `Inventory.Read`, `Inventory.Adjust`, `Shipping.Manage`, `Orders.Read`, `Orders.Manage`, `Settings.Manage` (AppSeed → Owner). IAM Dashboard uses Permixa `Iam.*` (Users/Roles/Permissions/RolePermissions/UserRoles/UserPermissionOverrides/Audit) — do not duplicate as `Access.*` |
 | Reference feature | SampleNotes **removed** (forward migration `DropSampleNotes`) |
 | Authz cache | In-memory by default; Redis when generated with `--redis` |
 | Email confirmation | Off by default; `RequireConfirmedEmail=true` with `--resend` |
-| App migrations | … + `ProtectGuestIdempotencyToken` + **`DropSampleNotes`** (`__AppMigrationsHistory`, count **11**) — **no new business IAM tables** |
+| App migrations | … + `ProtectGuestIdempotencyToken` + **`DropSampleNotes`** + **`AddCustomerProfiles`** (`__AppMigrationsHistory`, count **12**) — **no new business IAM tables** |
 | Image provider | Cloudinary via `IImageStorage` (Infrastructure only); storage key is provider-neutral (`ImageStorageKey` / `StorageKey`) |
 | Upload policy | Central `Media:MaxImageSizeMb` (default 5); JPEG/PNG/WebP; affects NEW uploads only |
 | Windows Dev DB | `DESKTOP-30CDIBP\MSSQLSERVER22` / `ElectricalStore.Db` (Trusted Connection) |
@@ -36,7 +36,7 @@
 | Operational logging | Built-in `ILogger` + JSON console (Production); request middleware; Order/Inventory Information logs; no bodies/secrets/PII |
 | Postman contract | `docs/postman/ElectricalStore.postman_collection.json` + Local environment (frontend-ready) |
 | CORS | Config-driven `Cors:AllowedOrigins` (Dev: `http://localhost:3100`); methods GET/POST/PUT/DELETE/OPTIONS; headers Authorization, Content-Type, Idempotency-Key, X-Order-Token; expose Retry-After; **no** AllowAnyOrigin / **no** AllowCredentials |
-| Verified tests | **162/162** Release (Domain 48, Application 45, Infrastructure 17, Integration 52) |
+| Verified tests | Domain 51, Application 53, Infrastructure 17, Integration 73 (Release). Frontend Vitest 191. Playwright local E2E (profile/auth subset verified in architectural finalization). |
 
 ## Next work (backend sequence)
 
@@ -68,7 +68,8 @@ Hardening & Release Readiness — see [RELEASE-READINESS.md](RELEASE-READINESS.m
 24. ~~Frontend F7.5 Admin Orders management~~ **done** (`67ff327`)
 25. ~~Frontend F7.6 Admin Settings management~~ **done** (`572bf8f`)
 26. ~~Frontend F7.7 Admin IAM management~~ **done** (`5b473f4`)
-27. ~~Hardening & Release Readiness baseline~~ **locked** ([RELEASE-READINESS.md](RELEASE-READINESS.md), [PRODUCTION.md](PRODUCTION.md)) — HIGH launch-verification items remain open (admin/limited E2E, nginx -t on rendered config, real VPS/TLS smoke)
+27. ~~Hardening & Release Readiness baseline~~ **locked** (`5fb744a`) — HIGH launch-verification items remain open for real VPS launch
+28. ~~Local system validation / Dev fixtures~~ **done** (`LocalDevFixtures` Development-only; `prepare-local-e2e.ps1`; Playwright 21 including authenticated checkout, cancel/inventory, settings restore, IAM, Cloudinary)
 
 ### Authentication readiness gate
 

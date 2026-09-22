@@ -11,6 +11,7 @@ public static class ApiEndpointRouteBuilderExtensions
             .WithSummary("Liveness probe");
         endpoints.MapAuthEndpoints();
         endpoints.MapMeEndpoint();
+        endpoints.MapAccountEndpoints();
         endpoints.MapCategoryEndpoints();
         endpoints.MapProductEndpoints();
         endpoints.MapInventoryEndpoints();

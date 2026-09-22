@@ -42,6 +42,45 @@ Official local URLs:
 
 Frontend env: copy `frontend/.env.example` → `frontend/.env.local` (gitignored) if you need overrides. Defaults in code already match 5180/3100.
 
+### Local E2E fixtures
+
+Playwright tests use dedicated Development accounts and a gitignored env file. **Do not commit passwords.**
+
+1. Start the stack: `.\dev.ps1` and wait until `GET http://localhost:5180/health` succeeds.
+2. Prepare credentials (writes user-secrets + `frontend/.env.e2e.local`):
+
+   ```powershell
+   .\scripts\prepare-local-e2e.ps1
+   ```
+
+   Then **restart** the API so `LocalDevAccountFixtureSeeder` creates users/roles:
+
+   ```powershell
+   .\stop-dev.ps1
+   .\dev.ps1
+   ```
+
+3. Run E2E (Playwright loads `.env.e2e.local` automatically):
+
+   ```powershell
+   cd frontend
+   npm run test:e2e:install   # once
+   npm run test:e2e
+   ```
+
+4. **LocalDevFixtures (Development only):**
+   - `LocalDevFixtures:Enabled=true` in `appsettings.Development.json`
+   - Catalog seed: `E2E Category`, `E2E Product` (SKU `E2E-STD-001`), `E2E Shipping Zone`
+   - Account seed (after prepare script sets passwords in user-secrets): Customer / `E2E-Admin` / `E2E-Limited` (Orders.Read + Inventory.Read only)
+
+5. **Never** enable `LocalDevFixtures` in Production (`appsettings.json` keeps `Enabled: false`).
+
+6. **Local media (optional but needed for real upload E2E):** set Cloudinary user-secrets (`Cloudinary:CloudName`, `Cloudinary:ApiKey`, `Cloudinary:ApiSecret`). Without Cloudinary, Development may use `Media:AllowLocalDevStorage` → in-memory FakeImageStorage (never Production). Production never falls back to FakeImageStorage.
+
+7. **Login rate limit:** normal policy is 20/min. Widened to 200/min only when **both** Development **and** `LocalDevFixtures:Enabled` are true.
+
+See also [`frontend/e2e/README.md`](../frontend/e2e/README.md).
+
 Stop launcher-tracked processes only:
 
 ```powershell

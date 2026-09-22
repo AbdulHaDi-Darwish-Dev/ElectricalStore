@@ -6,22 +6,23 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ApiError } from "@/lib/api";
-import { getAuthErrorMessage } from "@/lib/auth";
 import {
-  registerAccount,
-  registerFormSchema,
-  type RegisterFormValues,
-} from "@/features/auth";
+  PASSWORD_POLICY_HINT,
+  customerRegisterFormSchema,
+  getCustomerProfileErrorMessage,
+  registerCustomer,
+  type CustomerRegisterFormValues,
+} from "@/features/account-profile";
 
 export function RegisterForm() {
   const router = useRouter();
   const [formError, setFormError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
 
-  const form = useForm<RegisterFormValues>({
-    resolver: zodResolver(registerFormSchema),
+  const form = useForm<CustomerRegisterFormValues>({
+    resolver: zodResolver(customerRegisterFormSchema),
     defaultValues: {
-      userName: "",
+      fullName: "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -29,11 +30,11 @@ export function RegisterForm() {
     mode: "onBlur",
   });
 
-  async function onSubmit(values: RegisterFormValues) {
+  async function onSubmit(values: CustomerRegisterFormValues) {
     setFormError(null);
     try {
-      await registerAccount({
-        userName: values.userName,
+      await registerCustomer({
+        fullName: values.fullName,
         email: values.email,
         password: values.password,
       });
@@ -41,10 +42,10 @@ export function RegisterForm() {
       router.replace("/login");
     } catch (error) {
       if (error instanceof ApiError) {
-        setFormError(getAuthErrorMessage(error.code, error.status));
+        setFormError(getCustomerProfileErrorMessage(error.code, error.status));
         return;
       }
-      setFormError(getAuthErrorMessage(undefined));
+      setFormError(getCustomerProfileErrorMessage(undefined));
     }
   }
 
@@ -55,18 +56,18 @@ export function RegisterForm() {
       noValidate
     >
       <div className="space-y-2">
-        <label htmlFor="userName" className="text-sm font-medium">
-          اسم المستخدم
+        <label htmlFor="fullName" className="text-sm font-medium">
+          الاسم الكامل
         </label>
         <input
-          id="userName"
-          autoComplete="username"
+          id="fullName"
+          autoComplete="name"
           className="w-full rounded-md border border-border bg-background px-3 py-2.5 text-sm outline-none ring-primary focus:ring-2"
-          {...form.register("userName")}
+          {...form.register("fullName")}
         />
-        {form.formState.errors.userName ? (
+        {form.formState.errors.fullName ? (
           <p className="text-sm text-destructive" role="alert">
-            {form.formState.errors.userName.message}
+            {form.formState.errors.fullName.message}
           </p>
         ) : null}
       </div>
@@ -79,6 +80,7 @@ export function RegisterForm() {
           id="email"
           type="email"
           autoComplete="email"
+          dir="ltr"
           className="w-full rounded-md border border-border bg-background px-3 py-2.5 text-sm outline-none ring-primary focus:ring-2"
           {...form.register("email")}
         />
@@ -100,6 +102,7 @@ export function RegisterForm() {
           className="w-full rounded-md border border-border bg-background px-3 py-2.5 text-sm outline-none ring-primary focus:ring-2"
           {...form.register("password")}
         />
+        <p className="text-xs text-muted-foreground">{PASSWORD_POLICY_HINT}</p>
         {form.formState.errors.password ? (
           <p className="text-sm text-destructive" role="alert">
             {form.formState.errors.password.message}
@@ -126,11 +129,10 @@ export function RegisterForm() {
       </div>
 
       {formError ? (
-        <p className="rounded-md border border-border bg-muted/40 px-3 py-2 text-sm" role="alert">
+        <p className="text-sm text-destructive" role="alert">
           {formError}
         </p>
       ) : null}
-
       {done ? (
         <p className="text-sm text-muted-foreground" role="status">
           تم إنشاء الحساب. يمكنك تسجيل الدخول الآن.
@@ -142,7 +144,7 @@ export function RegisterForm() {
         disabled={form.formState.isSubmitting}
         className="w-full rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:opacity-95 disabled:opacity-60"
       >
-        {form.formState.isSubmitting ? "جاري الإنشاء…" : "إنشاء حساب"}
+        {form.formState.isSubmitting ? "جاري إنشاء الحساب…" : "إنشاء حساب"}
       </button>
 
       <p className="text-center text-sm text-muted-foreground">

@@ -1,6 +1,7 @@
 using ElectricalStore.Application.Abstractions;
 using ElectricalStore.Application.Catalog.Categories;
 using ElectricalStore.Application.Catalog.Products;
+using ElectricalStore.Application.Customers;
 using ElectricalStore.Application.Inventory;
 using ElectricalStore.Application.Media;
 using ElectricalStore.Application.Ordering;
@@ -40,12 +41,19 @@ public static class DependencyInjection
         services.AddSingleton(mediaOptions);
         services.AddSingleton<ImageUploadValidator>();
 
+        var isProduction = string.Equals(
+            Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"),
+            Environments.Production,
+            StringComparison.OrdinalIgnoreCase);
+
         var cloudinaryOptions = new CloudinaryOptions();
         configuration.GetSection(CloudinaryOptions.SectionName).Bind(cloudinaryOptions);
         services.AddSingleton(Microsoft.Extensions.Options.Options.Create(cloudinaryOptions));
 
         if (cloudinaryOptions.IsConfigured)
             services.AddSingleton<IImageStorage, CloudinaryImageStorage>();
+        else if (mediaOptions.AllowLocalDevStorage && !isProduction)
+            services.AddSingleton<IImageStorage, FakeImageStorage>();
         else
             services.AddSingleton<IImageStorage, UnconfiguredImageStorage>();
 
@@ -62,10 +70,6 @@ public static class DependencyInjection
         // Persist keys so guest Place Order idempotency can Unprotect across process restarts.
         // Production MUST set DataProtection:KeysPath to a durable mounted volume.
         var keysPath = configuration["DataProtection:KeysPath"];
-        var isProduction = string.Equals(
-            Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"),
-            Environments.Production,
-            StringComparison.OrdinalIgnoreCase);
         if (string.IsNullOrWhiteSpace(keysPath))
         {
             if (isProduction)
@@ -126,6 +130,12 @@ public static class DependencyInjection
         services.AddScoped<GetAdminDeliveryZoneByIdUseCase>();
         services.AddScoped<ListAdminDeliveryZonesUseCase>();
         services.AddScoped<ListActiveDeliveryZonesUseCase>();
+
+        services.AddScoped<ICustomerProfileRepository, CustomerProfileRepository>();
+        services.AddScoped<GetCustomerProfileUseCase>();
+        services.AddScoped<UpdateCustomerProfileUseCase>();
+        services.AddScoped<CreateCustomerProfileForUserUseCase>();
+        services.AddScoped<CompleteCustomerRegistrationUseCase>();
 
         services.AddScoped<CheckoutPricingService>();
         services.AddScoped<CheckoutPreviewUseCase>();

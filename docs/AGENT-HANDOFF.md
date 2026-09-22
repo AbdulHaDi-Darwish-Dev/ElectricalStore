@@ -40,6 +40,7 @@ Consumer ASP.NET Core app using Permixa NuGet IAM. Clean Architecture host.
 - Place Order does **not** reserve stock; Admin Confirm reserves atomically; OutForDelivery dispatches OnHand+Reserved
 - Guest order token: store hash only; raw token once; `X-Order-Token` for guest access; never log raw token
 - CORS: `Cors:AllowedOrigins` config only (Dev includes `http://localhost:3100`); no AllowAnyOrigin; no AllowCredentials; expose `Retry-After`
+- CustomerProfile is store-owned (FullName); Permixa owns identity. Technical UserName = `customer-{guid}` (not email). GET `/account/profile` is read-only for legacy users (no lazy insert); PUT creates if missing. `/me` stays permissions-only.
 - Cloudinary lives only in Infrastructure behind `IImageStorage`; Domain/Application use provider-neutral `StorageKey`
 - `Media:MaxImageSizeMb` (default 5) + allowed content types are central upload validation only
 - No Variant images; no generic media platform in MVP

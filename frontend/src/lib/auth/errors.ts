@@ -19,6 +19,15 @@ export function getAuthErrorMessage(
     case "Auth.UserLocked":
     case "Identity.LockedOut":
       return "تم قفل الحساب مؤقتاً. حاول لاحقاً.";
+    case "Authentication.InvalidPassword":
+    case "Identity.PasswordRequiresDigit":
+    case "Identity.PasswordRequiresLower":
+    case "Identity.PasswordRequiresUpper":
+    case "Identity.PasswordRequiresNonAlphanumeric":
+    case "Identity.PasswordTooShort":
+      return "كلمة المرور لا تستوفي متطلبات الأمان (٨ أحرف على الأقل مع حرف كبير وصغير ورقم ورمز).";
+    case "Authentication.EmailAlreadyExists":
+    case "Authentication.UserNameAlreadyExists":
     case "Conflict":
     case "Identity.DuplicateEmail":
     case "Identity.DuplicateUserName":
