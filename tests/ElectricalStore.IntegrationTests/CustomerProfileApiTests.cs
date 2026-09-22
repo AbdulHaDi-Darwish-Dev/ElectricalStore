@@ -55,6 +55,10 @@ public sealed class CustomerProfileApiTests : IClassFixture<AppWebApplicationFac
         var registered = (await register.Content.ReadFromJsonAsync<RegisterBody>(Json))!;
         Assert.Equal(fullName, registered.FullName);
         Assert.Equal(email, registered.Email);
+        Assert.True(registered.EmailVerificationRequired);
+        Assert.True(registered.VerificationEmailSent);
+
+        await _factory.ConfirmEmailFromOutboxAsync(client, email);
 
         var login = await client.PostAsJsonAsync("/auth/login", new
         {
@@ -138,6 +142,8 @@ public sealed class CustomerProfileApiTests : IClassFixture<AppWebApplicationFac
             password = TestKeys.UserPassword
         })).EnsureSuccessStatusCode();
 
+        await _factory.MarkEmailConfirmedAsync(email);
+
         var login = await client.PostAsJsonAsync("/auth/login", new
         {
             emailOrUserName = email,
@@ -194,6 +200,8 @@ public sealed class CustomerProfileApiTests : IClassFixture<AppWebApplicationFac
             password = TestKeys.UserPassword
         })).EnsureSuccessStatusCode();
 
+        await _factory.ConfirmEmailFromOutboxAsync(client, email);
+
         var login = await client.PostAsJsonAsync("/auth/login", new
         {
             emailOrUserName = email,
@@ -215,6 +223,8 @@ public sealed class CustomerProfileApiTests : IClassFixture<AppWebApplicationFac
         public Guid UserId { get; set; }
         public string FullName { get; set; } = "";
         public string Email { get; set; } = "";
+        public bool EmailVerificationRequired { get; set; }
+        public bool VerificationEmailSent { get; set; }
     }
 
     private sealed class ProfileBody

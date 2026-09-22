@@ -96,4 +96,13 @@ public sealed class ProductionEfLoggingTests : IClassFixture<ProductionEfOptions
 public sealed class ProductionEfOptionsFactory : AppWebApplicationFactory
 {
     protected override string EnvironmentName => Environments.Production;
+
+    protected override void ConfigureWebHost(Microsoft.AspNetCore.Hosting.IWebHostBuilder builder)
+    {
+        base.ConfigureWebHost(builder);
+        builder.UseSetting("Email:UseCapturingSender", "false");
+        builder.UseSetting("Email:FrontendPublicUrl", "https://store.example.test");
+        builder.UseSetting("Email:FromEmail", "noreply@example.test");
+        builder.UseSetting("Email:Resend:ApiKey", "re_test_placeholder_not_called");
+    }
 }

@@ -6,6 +6,7 @@ using Permixa.Application.Authentication.Register;
 using Permixa.Application.Authorization.Abstractions;
 using Permixa.Application.Common.Abstractions;
 using Permixa.Application.Identity.Abstractions;
+using Permixa.Application.Verification.Abstractions;
 using Permixa.Domain.Authorization;
 
 namespace ElectricalStore.Api.Hosting;
@@ -55,6 +56,7 @@ public sealed class LocalDevAccountFixtureSeeder
     private readonly RegisterUserUseCase _register;
     private readonly CreateCustomerProfileForUserUseCase _createProfile;
     private readonly IIdentityUserReader _users;
+    private readonly IIdentityEmailConfirmation _emailConfirmation;
     private readonly IIdentityRoleReader _roleReader;
     private readonly IIdentityRoleWriter _roleWriter;
     private readonly IIdentityUserRoleWriter _userRoleWriter;
@@ -70,8 +72,9 @@ public sealed class LocalDevAccountFixtureSeeder
         RegisterUserUseCase register,
         CreateCustomerProfileForUserUseCase createProfile,
         IIdentityUserReader users,
-        IIdentityRoleReader roleReader,
+        IIdentityEmailConfirmation emailConfirmation,
         IIdentityRoleWriter roleWriter,
+        IIdentityRoleReader roleReader,
         IIdentityUserRoleWriter userRoleWriter,
         IPermissionRepository permissions,
         IRolePermissionRepository rolePermissions,
@@ -84,6 +87,7 @@ public sealed class LocalDevAccountFixtureSeeder
         _register = register;
         _createProfile = createProfile;
         _users = users;
+        _emailConfirmation = emailConfirmation;
         _roleReader = roleReader;
         _roleWriter = roleWriter;
         _userRoleWriter = userRoleWriter;
@@ -275,6 +279,9 @@ public sealed class LocalDevAccountFixtureSeeder
             userId = existing.Id;
             _logger.LogInformation("LocalDevFixtures user {Email} already exists.", email);
         }
+
+        // Fixture accounts must be login-ready under RequireConfirmedEmail.
+        await _emailConfirmation.MarkEmailConfirmedAsync(userId, cancellationToken);
 
         if (roleId is null)
             return;

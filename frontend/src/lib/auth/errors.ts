@@ -34,6 +34,8 @@ export function getAuthErrorMessage(
     case "DuplicateEmail":
     case "DuplicateUserName":
       return "يوجد حساب بنفس البريد أو اسم المستخدم.";
+    case "Authentication.EmailNotConfirmed":
+      return "يجب تأكيد بريدك الإلكتروني قبل تسجيل الدخول.";
     case "Auth.RefreshFailed":
     case "Auth.NoRefreshSession":
       return "انتهت الجلسة. يرجى تسجيل الدخول مجدداً.";

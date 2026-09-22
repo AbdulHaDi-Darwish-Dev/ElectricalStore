@@ -14,6 +14,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Permixa.AspNetCore" />
+    <PackageReference Include="Permixa.Email.Resend" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
   </ItemGroup>
 </Project>

@@ -30,6 +30,34 @@ public sealed class AccessManagementApiTests : IClassFixture<AppWebApplicationFa
     }
 
     [Fact]
+    public async Task AccessManagement_HasNoUserCreateEndpoint_UnderRequireConfirmedEmail()
+    {
+        // Invariant: IAM UI/API currently manages existing users only.
+        // Future staff provisioning must include verification email or a trusted admin confirm path
+        // before login can succeed under RequireConfirmedEmail=true.
+        var client = _factory.CreateClient();
+        var swagger = await client.GetAsync("/swagger/v1/swagger.json");
+        swagger.EnsureSuccessStatusCode();
+        using var doc = JsonDocument.Parse(await swagger.Content.ReadAsStringAsync());
+        var usersPath = doc.RootElement.GetProperty("paths").GetProperty("/admin/access/users");
+        Assert.True(usersPath.TryGetProperty("get", out _));
+        Assert.False(
+            usersPath.TryGetProperty("post", out _),
+            "Do not add POST /admin/access/users without email-confirmation provisioning policy.");
+
+        var owner = await CreateOwnerClientAsync();
+        var createAttempt = await owner.PostAsJsonAsync("/admin/access/users", new
+        {
+            email = "staff-provision@example.test",
+            userName = "staffprovision",
+            password = TestKeys.UserPassword
+        });
+        Assert.True(
+            createAttempt.StatusCode is HttpStatusCode.NotFound or HttpStatusCode.MethodNotAllowed,
+            $"Unexpected status for staff create attempt: {createAttempt.StatusCode}");
+    }
+
+    [Fact]
     public async Task AuthenticatedWithoutIamPermission_Returns403()
     {
         var user = await CreateRegisteredUserClientAsync($"staff-{Guid.NewGuid():N}"[..20]);
@@ -345,6 +373,8 @@ public sealed class AccessManagementApiTests : IClassFixture<AppWebApplicationFa
             password = TestKeys.UserPassword
         });
         register.EnsureSuccessStatusCode();
+
+        await _factory.MarkEmailConfirmedAsync(email);
 
         var login = await client.PostAsJsonAsync("/auth/login", new
         {

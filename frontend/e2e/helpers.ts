@@ -48,6 +48,66 @@ export async function apiHealthy(): Promise<boolean> {
   }
 }
 
+export type CapturedDevEmail = {
+  id?: string;
+  capturedAtUtc?: string;
+  to: string;
+  from: string;
+  subject: string;
+  textBody: string;
+  htmlBody: string;
+  previewUrl?: string;
+  textUrl?: string;
+};
+
+/** Development CapturingEmailSender outbox (requires Email:UseCapturingSender=true). */
+export async function fetchDevEmailOutbox(): Promise<CapturedDevEmail[]> {
+  const res = await fetch(`${e2eEnv.apiUrl}/dev/email-outbox`, {
+    signal: AbortSignal.timeout(5000),
+  });
+  if (!res.ok) {
+    throw new Error(`Dev email outbox unavailable: HTTP ${res.status}`);
+  }
+  return (await res.json()) as CapturedDevEmail[];
+}
+
+export async function clearDevEmailOutbox(): Promise<void> {
+  await fetch(`${e2eEnv.apiUrl}/dev/email-outbox`, {
+    method: "DELETE",
+    signal: AbortSignal.timeout(5000),
+  });
+}
+
+export function extractVerificationPath(textBody: string): string {
+  const match = textBody.match(
+    /https?:\/\/[^\s]+(\/verify-email\?challengeId=[0-9a-fA-F-]{36}&token=[^\s]+)/,
+  );
+  if (!match) {
+    throw new Error("Verification link not found in email text body");
+  }
+  return match[1];
+}
+
+export async function confirmLatestVerificationEmail(
+  page: Page,
+  email: string,
+): Promise<void> {
+  const mailbox = await fetchDevEmailOutbox();
+  const message = [...mailbox]
+    .reverse()
+    .find((m) => m.to.toLowerCase() === email.toLowerCase());
+  if (!message) {
+    throw new Error(`No captured email for ${email}`);
+  }
+  const path = extractVerificationPath(message.textBody);
+  await page.goto(path);
+  await expect(
+    page.getByRole("heading", { name: /تم تأكيد بريدك الإلكتروني/ }),
+  ).toBeVisible({
+    timeout: 20_000,
+  });
+}
+
 export async function frontendHealthy(): Promise<boolean> {
   try {
     const res = await fetch(e2eEnv.baseUrl, {

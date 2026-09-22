@@ -2,7 +2,9 @@ using ElectricalStore.Api.Hosting;
 using ElectricalStore.Api.Http;
 using ElectricalStore.Application.Customers;
 using Permixa.Application.Authentication.ChangePassword;
+using Permixa.Application.Verification.EmailConfirmation;
 using Permixa.AspNetCore.Http;
+using Permixa.AspNetCore.RateLimiting;
 using Permixa.AspNetCore.Security;
 
 namespace ElectricalStore.Api.Endpoints;
@@ -23,6 +25,55 @@ public static class AccountEndpoints
             .AllowAnonymous()
             .WithName("RegisterCustomer")
             .WithSummary("Register a storefront customer (FullName + email + password; technical UserName is server-owned)");
+
+        account.MapPost("/email-verification/confirm", async (
+                ConfirmCustomerEmailRequest request,
+                ConfirmEmailUseCase useCase,
+                HttpContext http,
+                CancellationToken cancellationToken) =>
+            {
+                ArgumentNullException.ThrowIfNull(request);
+
+                var result = await useCase.ExecuteAsync(
+                    new ConfirmEmailRequest
+                    {
+                        ChallengeId = request.ChallengeId,
+                        VerificationValue = request.Token
+                    },
+                    cancellationToken);
+
+                // Idempotent UX: already confirmed / already consumed challenge → success.
+                if (!result.IsSuccess)
+                {
+                    var code = result.Error?.Code;
+                    if (code is "Verification.AlreadyConfirmed" or "Verification.AlreadyConsumed")
+                    {
+                        return Results.Ok(new { confirmed = true, alreadyConfirmed = true });
+                    }
+                }
+
+                return result.ToHttpResult(http, () => Results.Ok(new
+                {
+                    confirmed = true,
+                    alreadyConfirmed = false
+                }));
+            })
+            .AllowAnonymous()
+            .WithName("ConfirmCustomerEmail")
+            .WithSummary("Confirm customer email using Permixa verification challenge + token");
+
+        account.MapPost("/email-verification/resend", async (
+                CustomerEmailVerificationResendRequest request,
+                ResendCustomerEmailVerificationUseCase useCase,
+                CancellationToken cancellationToken) =>
+            {
+                var result = await useCase.ExecuteAsync(request, cancellationToken);
+                return result.ToHttpResult();
+            })
+            .AllowAnonymous()
+            .RequireRateLimiting("EmailVerificationResend")
+            .WithName("ResendCustomerEmailVerification")
+            .WithSummary("Resend registration email verification (anti-enumeration public response)");
 
         account.MapGet("/profile", async (
                 ICurrentUser currentUser,

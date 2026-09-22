@@ -64,6 +64,8 @@ public sealed class AuthzHappyPathTests : IClassFixture<AppWebApplicationFactory
         });
         register.EnsureSuccessStatusCode();
 
+        await _factory.MarkEmailConfirmedAsync("alice@example.test");
+
         var login = await client.PostAsJsonAsync("/auth/login", new
         {
             emailOrUserName = "alice@example.test",
@@ -197,4 +199,14 @@ public sealed class EnvironmentBehaviorTests
 file sealed class ProductionNoMigrateFactory : AppWebApplicationFactory
 {
     protected override string EnvironmentName => Environments.Production;
+
+    protected override void ConfigureWebHost(Microsoft.AspNetCore.Hosting.IWebHostBuilder builder)
+    {
+        base.ConfigureWebHost(builder);
+        // Production gate requires real delivery config; these tests never send mail.
+        builder.UseSetting("Email:UseCapturingSender", "false");
+        builder.UseSetting("Email:FrontendPublicUrl", "https://store.example.test");
+        builder.UseSetting("Email:FromEmail", "noreply@example.test");
+        builder.UseSetting("Email:Resend:ApiKey", "re_test_placeholder_not_called");
+    }
 }

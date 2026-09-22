@@ -136,6 +136,8 @@ public static class DependencyInjection
         services.AddScoped<UpdateCustomerProfileUseCase>();
         services.AddScoped<CreateCustomerProfileForUserUseCase>();
         services.AddScoped<CompleteCustomerRegistrationUseCase>();
+        services.AddScoped<ResendCustomerEmailVerificationUseCase>();
+        services.AddScoped<RequestCustomerRegistrationEmailConfirmationUseCase>();
 
         services.AddScoped<CheckoutPricingService>();
         services.AddScoped<CheckoutPreviewUseCase>();

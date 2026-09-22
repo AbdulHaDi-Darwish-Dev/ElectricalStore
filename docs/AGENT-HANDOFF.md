@@ -41,6 +41,8 @@ Consumer ASP.NET Core app using Permixa NuGet IAM. Clean Architecture host.
 - Guest order token: store hash only; raw token once; `X-Order-Token` for guest access; never log raw token
 - CORS: `Cors:AllowedOrigins` config only (Dev includes `http://localhost:3100`); no AllowAnyOrigin; no AllowCredentials; expose `Retry-After`
 - CustomerProfile is store-owned (FullName); Permixa owns identity. Technical UserName = `customer-{guid}` (not email). GET `/account/profile` is read-only for legacy users (no lazy insert); PUT creates if missing. `/me` stays permissions-only.
+- Customer email verification: `RequireConfirmedEmail=true` (global login). Reuse Permixa `RequestEmailConfirmationUseCase` / `ConfirmEmailUseCase` (UrlToken, 1h) + `IEmailSender`. Register does not issue tokens; unconfirmed login → `Authentication.EmailNotConfirmed`. Dev capturing outbox at `/dev/email-outbox`; Production requires Resend. Fixture/Owner accounts are marked EmailConfirmed.
+- **IAM does not create users today** (`/admin/access` has no POST `/users`). Staff accounts exist via bootstrap/LocalDevFixtures/`/auth/register` (tests mark confirmed). Future staff provisioning MUST send verification email **or** use an explicit trusted admin confirmation path — never silently confirm by role name. Storefront customers use `/account/register` (verification email). Raw `/auth/register` creates unconfirmed Identity without CustomerProfile/verification mail.
 - Cloudinary lives only in Infrastructure behind `IImageStorage`; Domain/Application use provider-neutral `StorageKey`
 - `Media:MaxImageSizeMb` (default 5) + allowed content types are central upload validation only
 - No Variant images; no generic media platform in MVP

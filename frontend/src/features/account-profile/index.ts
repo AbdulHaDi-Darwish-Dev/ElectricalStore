@@ -1,5 +1,7 @@
 export {
   registerCustomer,
+  confirmCustomerEmail,
+  resendCustomerEmailVerification,
   getCustomerProfile,
   updateCustomerProfile,
   changeCustomerPassword,
@@ -14,11 +16,18 @@ export {
   type UpdateProfileFormValues,
   type ChangePasswordFormValues,
 } from "./schemas";
-export { getCustomerProfileErrorMessage } from "./errors";
+export {
+  getCustomerProfileErrorMessage,
+  EMAIL_VERIFICATION_RESEND_GENERIC,
+} from "./errors";
 export type {
   CustomerProfileDto,
   CustomerRegistrationRequest,
   CustomerRegistrationResponse,
+  ConfirmEmailRequest,
+  ConfirmEmailResponse,
+  ResendEmailVerificationRequest,
+  ResendEmailVerificationResponse,
   UpdateCustomerProfileRequest,
   ChangePasswordRequest,
   ChangePasswordResponse,

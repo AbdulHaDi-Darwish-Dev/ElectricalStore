@@ -1,6 +1,8 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.RegularExpressions;
+using ElectricalStore.Api.Hosting;
 using ElectricalStore.Application.Abstractions;
 using ElectricalStore.Infrastructure.Media;
 using Microsoft.AspNetCore.Hosting;
@@ -19,8 +21,12 @@ public sealed class CapturedEmail
     public required string To { get; init; }
     public required string Subject { get; init; }
     public required string TextBody { get; init; }
+    public string HtmlBody { get; init; } = "";
 }
 
+/// <summary>
+/// Test double implementing Permixa IEmailSender; mirrors Api CapturingEmailSender shape.
+/// </summary>
 public sealed class CapturingEmailSender : IEmailSender
 {
     private readonly List<CapturedEmail> _sent = new();
@@ -35,7 +41,8 @@ public sealed class CapturingEmailSender : IEmailSender
         {
             To = message.To,
             Subject = message.Subject,
-            TextBody = message.TextBody
+            TextBody = message.TextBody,
+            HtmlBody = message.HtmlBody
         });
         return Task.CompletedTask;
     }
@@ -43,6 +50,10 @@ public sealed class CapturingEmailSender : IEmailSender
 
 public class AppWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
+    private static readonly Regex VerificationLinkRegex = new(
+        @"https?://[^\s]+/verify-email\?challengeId=([0-9a-fA-F-]{36})&token=([^\s]+)",
+        RegexOptions.Compiled);
+
     private readonly MsSqlContainer _sql = new MsSqlBuilder()
         .WithImage("mcr.microsoft.com/mssql/server:2022-latest")
         .Build();
@@ -68,7 +79,6 @@ public class AppWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLi
     {
         builder.UseEnvironment(EnvironmentName);
 
-        // UseSetting wins over empty appsettings ConnectionStrings:Default.
         builder.UseSetting("ConnectionStrings:Default", _sql.GetConnectionString());
         builder.UseSetting("Permixa:Jwt:Issuer", TestKeys.Issuer);
         builder.UseSetting("Permixa:Jwt:Audience", TestKeys.Audience);
@@ -79,15 +89,26 @@ public class AppWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLi
         builder.UseSetting("Permixa:Bootstrap:OwnerUserName", TestKeys.OwnerUserName);
         builder.UseSetting("Permixa:Bootstrap:OwnerPassword", TestKeys.OwnerPassword);
         builder.UseSetting("Permixa:AppSeed:Enabled", "true");
-        builder.UseSetting("Permixa:Authentication:RequireConfirmedEmail", "false");
+        builder.UseSetting("Permixa:Authentication:RequireConfirmedEmail", "true");
         builder.UseSetting("Media:MaxImageSizeMb", "5");
-        // Keep production-shaped Login rate limit (20/min) in integration tests.
         builder.UseSetting("LocalDevFixtures:Enabled", "false");
+        builder.UseSetting("Email:UseCapturingSender", "true");
+        builder.UseSetting("Email:FrontendPublicUrl", "http://localhost:3100");
+        builder.UseSetting("Email:FromEmail", "noreply@electricalstore.test");
+        builder.UseSetting("Email:FromName", "ElectricalStore Test");
+        builder.UseSetting("Email:Branding:ApplicationName", "ElectricalStore");
+        builder.UseSetting("Email:ResendCooldownSeconds", "1");
+        // Allow EmailVerificationResend rate-limit tests to isolate RemoteIp partitions.
+        builder.UseSetting("Testing:AllowConnectingIpOverride", "true");
 
         builder.ConfigureServices(services =>
         {
             services.RemoveAll<IImageStorage>();
             services.AddSingleton<IImageStorage>(Images);
+
+            services.RemoveAll<IEmailSender>();
+            services.RemoveAll<ElectricalStore.Api.Hosting.CapturingEmailSender>();
+            services.AddSingleton<IEmailSender>(Emails);
         });
     }
 
@@ -97,6 +118,42 @@ public class AppWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLi
         client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", accessToken);
         return client;
+    }
+
+    public async Task ConfirmEmailFromOutboxAsync(HttpClient client, string email)
+    {
+        var message = Emails.Sent.LastOrDefault(e =>
+            string.Equals(e.To, email, StringComparison.OrdinalIgnoreCase));
+        Assert.NotNull(message);
+
+        var match = VerificationLinkRegex.Match(message!.TextBody);
+        Assert.True(match.Success, "Verification link missing from email text body.");
+
+        var challengeId = Guid.Parse(match.Groups[1].Value);
+        var token = Uri.UnescapeDataString(match.Groups[2].Value);
+
+        var confirm = await client.PostAsJsonAsync("/account/email-verification/confirm", new
+        {
+            challengeId,
+            token
+        });
+        confirm.EnsureSuccessStatusCode();
+    }
+
+    /// <summary>
+    /// Marks Identity EmailConfirmed for users created via /auth/register in tests (non-customer flows).
+    /// </summary>
+    public async Task MarkEmailConfirmedAsync(string email)
+    {
+        using var scope = Services.CreateScope();
+        var emails = scope.ServiceProvider
+            .GetRequiredService<Permixa.Application.Verification.Abstractions.IIdentityUserEmailReader>();
+        var confirm = scope.ServiceProvider
+            .GetRequiredService<Permixa.Application.Verification.Abstractions.IIdentityEmailConfirmation>();
+
+        var userId = await emails.FindUserIdByEmailAsync(email);
+        Assert.NotNull(userId);
+        await confirm.MarkEmailConfirmedAsync(userId!.Value);
     }
 }
 

@@ -15,6 +15,8 @@ export type CustomerRegistrationResponse = {
   userId: string;
   fullName: string;
   email: string;
+  emailVerificationRequired: boolean;
+  verificationEmailSent: boolean;
 };
 
 export type UpdateCustomerProfileRequest = {
@@ -28,4 +30,22 @@ export type ChangePasswordRequest = {
 
 export type ChangePasswordResponse = {
   reauthenticationRequired: boolean;
+};
+
+export type ConfirmEmailRequest = {
+  challengeId: string;
+  token: string;
+};
+
+export type ConfirmEmailResponse = {
+  confirmed: boolean;
+  alreadyConfirmed?: boolean;
+};
+
+export type ResendEmailVerificationRequest = {
+  email: string;
+};
+
+export type ResendEmailVerificationResponse = {
+  message: string;
 };

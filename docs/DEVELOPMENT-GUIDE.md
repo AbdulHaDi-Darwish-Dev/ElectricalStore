@@ -79,6 +79,8 @@ Playwright tests use dedicated Development accounts and a gitignored env file. *
 
 7. **Login rate limit:** normal policy is 20/min. Widened to 200/min only when **both** Development **and** `LocalDevFixtures:Enabled` are true.
 
+8. **Email verification (Development):** `Email:UseCapturingSender=true` captures outbound mail. Open `http://localhost:5180/dev/email-outbox` in a browser for a message list + **Open HTML preview** (exact captured HTML). Automation uses the same URL with `Accept: application/json` (or `*/*`). For real Resend locally, set user-secrets `Email:Resend:ApiKey`, `Email:FromEmail`, `Email:FrontendPublicUrl=http://localhost:3100`, and `Email:UseCapturingSender=false`. Fixture/Owner accounts are auto-marked `EmailConfirmed` so admin/E2E login keeps working under `RequireConfirmedEmail`.
+
 See also [`frontend/e2e/README.md`](../frontend/e2e/README.md).
 
 Stop launcher-tracked processes only:

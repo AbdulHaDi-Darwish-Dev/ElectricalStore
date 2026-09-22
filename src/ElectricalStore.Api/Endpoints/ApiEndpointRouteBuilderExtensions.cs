@@ -21,6 +21,7 @@ public static class ApiEndpointRouteBuilderExtensions
         endpoints.MapAccessManagementEndpoints();
         endpoints.MapTestFaultEndpointIfEnabled();
         endpoints.MapTestRemoteIpEndpointIfEnabled();
+        endpoints.MapDevEmailOutboxIfEnabled();
         return endpoints;
     }
 }

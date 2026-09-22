@@ -3,9 +3,13 @@ import { apiFetch } from "@/lib/api";
 import type {
   ChangePasswordRequest,
   ChangePasswordResponse,
+  ConfirmEmailRequest,
+  ConfirmEmailResponse,
   CustomerProfileDto,
   CustomerRegistrationRequest,
   CustomerRegistrationResponse,
+  ResendEmailVerificationRequest,
+  ResendEmailVerificationResponse,
   UpdateCustomerProfileRequest,
 } from "./types";
 
@@ -17,6 +21,29 @@ export function registerCustomer(
     body,
     cache: "no-store",
   });
+}
+
+export function confirmCustomerEmail(
+  body: ConfirmEmailRequest,
+): Promise<ConfirmEmailResponse> {
+  return apiFetch<ConfirmEmailResponse>("/account/email-verification/confirm", {
+    method: "POST",
+    body,
+    cache: "no-store",
+  });
+}
+
+export function resendCustomerEmailVerification(
+  body: ResendEmailVerificationRequest,
+): Promise<ResendEmailVerificationResponse> {
+  return apiFetch<ResendEmailVerificationResponse>(
+    "/account/email-verification/resend",
+    {
+      method: "POST",
+      body,
+      cache: "no-store",
+    },
+  );
 }
 
 export function getCustomerProfile(): Promise<CustomerProfileDto> {
@@ -32,7 +59,6 @@ export function updateCustomerProfile(
   return authenticatedFetch<CustomerProfileDto>("/account/profile", {
     method: "PUT",
     body,
-    cache: "no-store",
   });
 }
 
@@ -42,6 +68,5 @@ export function changeCustomerPassword(
   return authenticatedFetch<ChangePasswordResponse>("/account/change-password", {
     method: "POST",
     body,
-    cache: "no-store",
   });
 }

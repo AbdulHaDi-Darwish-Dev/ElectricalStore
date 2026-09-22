@@ -9,23 +9,27 @@ using AppResults = ElectricalStore.Api.Http.AppResultHttpExtensions;
 namespace ElectricalStore.Api.Hosting;
 
 /// <summary>
-/// Customer registration across Permixa Identity + ElectricalStore CustomerProfile.
+/// Customer registration across Permixa Identity + ElectricalStore CustomerProfile + email verification request.
 /// Not a distributed transaction: identity first, then profile; compensate delete on profile failure.
-/// Technical UserName is server-owned (customer-{guid}) — never email — so AllowedUserNameCharacters is always satisfied.
+/// Email delivery failure does not compensate/delete the account (Application policy via
+/// <see cref="RequestCustomerRegistrationEmailConfirmationUseCase"/>).
 /// </summary>
 public sealed class RegisterCustomerOrchestrator
 {
     private readonly RegisterUserUseCase _register;
     private readonly CompleteCustomerRegistrationUseCase _completeRegistration;
+    private readonly RequestCustomerRegistrationEmailConfirmationUseCase _requestEmailConfirmation;
     private readonly ILogger<RegisterCustomerOrchestrator> _logger;
 
     public RegisterCustomerOrchestrator(
         RegisterUserUseCase register,
         CompleteCustomerRegistrationUseCase completeRegistration,
+        RequestCustomerRegistrationEmailConfirmationUseCase requestEmailConfirmation,
         ILogger<RegisterCustomerOrchestrator> logger)
     {
         _register = register;
         _completeRegistration = completeRegistration;
+        _requestEmailConfirmation = requestEmailConfirmation;
         _logger = logger;
     }
 
@@ -47,8 +51,6 @@ public sealed class RegisterCustomerOrchestrator
             return AppResults.ToHttpResult(Result.Failure(CustomerErrors.PasswordRequired));
 
         var email = request.Email.Trim();
-        // Email is NOT used as UserName: Identity AllowedUserNameCharacters is a subset of
-        // characters accepted by typical email validators (e.g. # ! $ % are valid in some emails).
         var userName = CustomerTechnicalUserName.Create();
 
         var registerResult = await _register.ExecuteAsync(
@@ -79,6 +81,16 @@ public sealed class RegisterCustomerOrchestrator
             return AppResults.ToHttpResult(completed);
         }
 
-        return Results.Json(completed.Value, statusCode: StatusCodes.Status201Created);
+        var sent = await _requestEmailConfirmation.TrySendAsync(
+            registered.UserId,
+            cancellationToken);
+
+        var body = completed.Value with
+        {
+            EmailVerificationRequired = true,
+            VerificationEmailSent = sent
+        };
+
+        return Results.Json(body, statusCode: StatusCodes.Status201Created);
     }
 }

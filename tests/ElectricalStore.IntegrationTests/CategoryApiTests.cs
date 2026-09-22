@@ -133,6 +133,8 @@ public sealed class CategoryApiTests : IClassFixture<AppWebApplicationFactory>
         });
         register.EnsureSuccessStatusCode();
 
+        await _factory.MarkEmailConfirmedAsync(email);
+
         var login = await client.PostAsJsonAsync("/auth/login", new
         {
             emailOrUserName = email,

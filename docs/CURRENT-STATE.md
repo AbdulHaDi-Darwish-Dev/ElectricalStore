@@ -14,7 +14,7 @@
 | Permissions | App: `Categories.Manage`, `Products.Manage`, `Inventory.Read`, `Inventory.Adjust`, `Shipping.Manage`, `Orders.Read`, `Orders.Manage`, `Settings.Manage` (AppSeed → Owner). IAM Dashboard uses Permixa `Iam.*` (Users/Roles/Permissions/RolePermissions/UserRoles/UserPermissionOverrides/Audit) — do not duplicate as `Access.*` |
 | Reference feature | SampleNotes **removed** (forward migration `DropSampleNotes`) |
 | Authz cache | In-memory by default; Redis when generated with `--redis` |
-| Email confirmation | Off by default; `RequireConfirmedEmail=true` with `--resend` |
+| Email confirmation | **On** (`Permixa:Authentication:RequireConfirmedEmail=true`, global). Customers: `/account/register` → verification email → confirm. Staff/IAM: **no user-create API yet**; Owner/fixtures marked confirmed at bootstrap/seed. `/dev/email-outbox` Development-only. Production fails closed without Resend+From+Frontend URL (capturing forbidden). |
 | App migrations | … + `ProtectGuestIdempotencyToken` + **`DropSampleNotes`** + **`AddCustomerProfiles`** (`__AppMigrationsHistory`, count **12**) — **no new business IAM tables** |
 | Image provider | Cloudinary via `IImageStorage` (Infrastructure only); storage key is provider-neutral (`ImageStorageKey` / `StorageKey`) |
 | Upload policy | Central `Media:MaxImageSizeMb` (default 5); JPEG/PNG/WebP; affects NEW uploads only |
@@ -31,12 +31,12 @@
 | Orders | Place Order persists Order+Items snapshots; **Pending does not reserve**; **Admin Confirm reserves atomically**; OutForDelivery dispatches; COD Unpaid/Paid separate from status |
 | Minimum order | Persisted `OrderingSettings` (admin Back Office); snapshotted as `AppliedMinimumOrderAmount` |
 | Place Order | Requires `Idempotency-Key`; guest replay via Data-Protection–protected payload (24h expiry); Order stores hash only |
-| Access Management | `/admin/access/*` thin Api adapters → Permixa use cases only. RoleLevel: **lower int = higher authority** (bootstrap Owner = **1**). Precedence: UserDeny > UserAllow > Role > DefaultDeny |
+| Access Management | `/admin/access/*` thin Api adapters → Permixa use cases only. **Users listed/managed; not created via IAM.** RoleLevel: **lower int = higher authority** (bootstrap Owner = **1**). Precedence: UserDeny > UserAllow > Role > DefaultDeny |
 | Data Protection | Keys persisted to `DataProtection:KeysPath` or `{BaseDirectory}/dp-keys` (required for guest idempotency Unprotect across restarts) |
 | Operational logging | Built-in `ILogger` + JSON console (Production); request middleware; Order/Inventory Information logs; no bodies/secrets/PII |
 | Postman contract | `docs/postman/ElectricalStore.postman_collection.json` + Local environment (frontend-ready) |
 | CORS | Config-driven `Cors:AllowedOrigins` (Dev: `http://localhost:3100`); methods GET/POST/PUT/DELETE/OPTIONS; headers Authorization, Content-Type, Idempotency-Key, X-Order-Token; expose Retry-After; **no** AllowAnyOrigin / **no** AllowCredentials |
-| Verified tests | Domain 51, Application 53, Infrastructure 17, Integration 73 (Release). Frontend Vitest 191. Playwright local E2E (profile/auth subset verified in architectural finalization). |
+| Verified tests | Domain 51, Application **59**, Infrastructure 17, Integration **82** (Release). Frontend Vitest 191. Playwright **24/24 passed** (full suite on local :3100/:5180). |
 
 ## Next work (backend sequence)
 

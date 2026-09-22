@@ -390,6 +390,7 @@ public sealed class OrderingApiTests : IClassFixture<AppWebApplicationFactory>
             email,
             password = TestKeys.UserPassword
         })).EnsureSuccessStatusCode();
+        await _factory.MarkEmailConfirmedAsync(email);
         var login = await client.PostAsJsonAsync("/auth/login", new
         {
             emailOrUserName = email,

@@ -73,6 +73,33 @@ public sealed class LocalDevCatalogFixtureSeeder
             .Include(p => p.Images)
             .FirstOrDefaultAsync(p => p.Name == ProductName, cancellationToken);
 
+        // Recover when SKU already exists under a differently named product (partial prior seed).
+        if (product is null)
+        {
+            var existingBySku = await _db.ProductVariants
+                .AsNoTracking()
+                .FirstOrDefaultAsync(v => v.Sku == VariantSku, cancellationToken);
+            if (existingBySku is not null)
+            {
+                product = await _db.Products
+                    .Include(p => p.Variants)
+                    .Include(p => p.Images)
+                    .FirstOrDefaultAsync(p => p.Id == existingBySku.ProductId, cancellationToken);
+                if (product is not null)
+                    skipped.Add($"product recovered via SKU '{VariantSku}'");
+            }
+        }
+
+        // Fixture identity is by public catalog name. If SKU recovery found another product,
+        // rename/re-home it onto the E2E category so Playwright name selectors keep working.
+        if (product is not null
+            && (!string.Equals(product.Name, ProductName, StringComparison.Ordinal)
+                || product.CategoryId != category.Id))
+        {
+            product.Update(ProductName, product.Description, category.Id);
+            created.Add($"aligned recovered product to fixture name '{ProductName}'");
+        }
+
         ProductVariant? variant;
         if (product is null)
         {

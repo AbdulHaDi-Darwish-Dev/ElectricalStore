@@ -17,7 +17,6 @@ import {
 export function RegisterForm() {
   const router = useRouter();
   const [formError, setFormError] = useState<string | null>(null);
-  const [done, setDone] = useState(false);
 
   const form = useForm<CustomerRegisterFormValues>({
     resolver: zodResolver(customerRegisterFormSchema),
@@ -33,13 +32,16 @@ export function RegisterForm() {
   async function onSubmit(values: CustomerRegisterFormValues) {
     setFormError(null);
     try {
-      await registerCustomer({
+      const result = await registerCustomer({
         fullName: values.fullName,
         email: values.email,
         password: values.password,
       });
-      setDone(true);
-      router.replace("/login");
+      const params = new URLSearchParams({
+        email: result.email,
+        sent: result.verificationEmailSent ? "1" : "0",
+      });
+      router.replace(`/verify-email/pending?${params.toString()}`);
     } catch (error) {
       if (error instanceof ApiError) {
         setFormError(getCustomerProfileErrorMessage(error.code, error.status));
@@ -131,11 +133,6 @@ export function RegisterForm() {
       {formError ? (
         <p className="text-sm text-destructive" role="alert">
           {formError}
-        </p>
-      ) : null}
-      {done ? (
-        <p className="text-sm text-muted-foreground" role="status">
-          تم إنشاء الحساب. يمكنك تسجيل الدخول الآن.
         </p>
       ) : null}
 

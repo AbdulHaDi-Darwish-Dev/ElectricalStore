@@ -20,7 +20,7 @@ export function getCustomerProfileErrorMessage(
     case "Authentication.UserNameAlreadyExists":
     case "Identity.DuplicateEmail":
     case "DuplicateEmail":
-      return "يوجد حساب بنفس البريد الإلكتروني.";
+      return "يوجد حساب بنفس البريد الإلكتروني. إذا سبق أن أنشأت حساباً، يمكنك إعادة إرسال رسالة التأكيد.";
     case "Authentication.InvalidPassword":
     case "Identity.PasswordRequiresDigit":
     case "Identity.PasswordRequiresLower":
@@ -30,7 +30,21 @@ export function getCustomerProfileErrorMessage(
       return "كلمة المرور لا تستوفي متطلبات الأمان (٨ أحرف على الأقل مع حرف كبير وصغير ورقم ورمز).";
     case "Authentication.CurrentPasswordInvalid":
       return "كلمة المرور الحالية غير صحيحة.";
+    case "Authentication.EmailNotConfirmed":
+      return "يجب تأكيد بريدك الإلكتروني قبل تسجيل الدخول.";
+    case "Verification.Expired":
+      return "انتهت صلاحية رابط التأكيد. اطلب رسالة جديدة.";
+    case "Verification.InvalidToken":
+    case "Verification.InvalidCode":
+    case "Verification.ChallengeNotFound":
+    case "Verification.Invalidated":
+      return "رابط التأكيد غير صالح.";
+    case "Verification.DeliveryFailed":
+      return "تعذر إرسال رسالة التأكيد. حاول إعادة الإرسال لاحقاً.";
     default:
+      if (status === 429) {
+        return "تم تجاوز حد المحاولات. يرجى الانتظار قليلاً ثم إعادة المحاولة.";
+      }
       if (status === 401) {
         return "يجب تسجيل الدخول للمتابعة.";
       }
@@ -40,3 +54,7 @@ export function getCustomerProfileErrorMessage(
       return "تعذر إكمال العملية. حاول مرة أخرى.";
   }
 }
+
+/** Generic anti-enumeration copy for resend. */
+export const EMAIL_VERIFICATION_RESEND_GENERIC =
+  "إذا وُجد حساب مؤهل بهذا البريد، فسيتم إرسال رسالة التأكيد.";
