@@ -26,6 +26,8 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    // Serve local demo-catalog media from wwwroot/demo-catalog (Development only).
+    app.UseStaticFiles();
 }
 
 // Correct Connection.RemoteIpAddress from trusted hops BEFORE logging / auth / rate limiting.

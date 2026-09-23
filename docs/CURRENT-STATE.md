@@ -38,7 +38,8 @@
 | Operational logging | Built-in `ILogger` + JSON console (Production); request middleware; Order/Inventory Information logs; no bodies/secrets/PII |
 | Postman contract | `docs/postman/ElectricalStore.postman_collection.json` + Local environment (frontend-ready) |
 | CORS | Config-driven `Cors:AllowedOrigins` (Dev: `http://localhost:3100`); methods GET/POST/PUT/DELETE/OPTIONS; headers Authorization, Content-Type, Idempotency-Key, X-Order-Token; expose Retry-After; **no** AllowAnyOrigin / **no** AllowCredentials |
-| Verified tests | Domain 51, Application **82**, Infrastructure 17, Integration **109** (Release). Frontend Vitest 191. Playwright **30/30**. Account recovery + change-email locked. |
+| Verified tests | Domain 51, Application **82**, Infrastructure 17, Integration **109** (Release; includes DemoCatalog **2**). Frontend Vitest 191. Playwright **30/30**. Account recovery + change-email + VOLTANO storefront + DemoCatalog locked. |
+| Demo catalog | Development-only `DemoCatalog:Enabled` (default false). Local Dev DB: **10** Arabic categories, **48** products, **50** variants (`DEMO-*`), **48** product images + **10** category images under `wwwroot/demo-catalog/`. Separate from LocalDevFixtures. Public catalog requires images (wired). |
 
 ## Next work (backend sequence)
 

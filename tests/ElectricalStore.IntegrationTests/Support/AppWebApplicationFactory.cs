@@ -92,6 +92,7 @@ public class AppWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLi
         builder.UseSetting("Permixa:Authentication:RequireConfirmedEmail", "true");
         builder.UseSetting("Media:MaxImageSizeMb", "5");
         builder.UseSetting("LocalDevFixtures:Enabled", "false");
+        builder.UseSetting("DemoCatalog:Enabled", "false");
         builder.UseSetting("Email:UseCapturingSender", "true");
         builder.UseSetting("Email:FrontendPublicUrl", "http://localhost:3100");
         builder.UseSetting("Email:FromEmail", "noreply@electricalstore.test");

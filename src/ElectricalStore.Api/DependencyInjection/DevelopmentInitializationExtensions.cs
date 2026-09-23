@@ -64,6 +64,22 @@ public static class DevelopmentInitializationExtensions
                 logger.LogError(ex, "LocalDevFixtures seeding failed; host continues for Development.");
             }
         }
+
+        if (app.Configuration.GetValue($"{DemoCatalogOptions.SectionName}:Enabled", false))
+        {
+            try
+            {
+                await scope.ServiceProvider.GetRequiredService<DemoCatalogSeeder>()
+                    .SeedAsync(cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                var logger = scope.ServiceProvider
+                    .GetRequiredService<ILoggerFactory>()
+                    .CreateLogger("DemoCatalog");
+                logger.LogError(ex, "DemoCatalog seeding failed; host continues for Development.");
+            }
+        }
     }
 
     /// <summary>

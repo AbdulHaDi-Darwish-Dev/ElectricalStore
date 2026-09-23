@@ -75,7 +75,9 @@ Playwright tests use dedicated Development accounts and a gitignored env file. *
 
 5. **Never** enable `LocalDevFixtures` in Production (`appsettings.json` keeps `Enabled: false`).
 
-6. **Local media (optional but needed for real upload E2E):** set Cloudinary user-secrets (`Cloudinary:CloudName`, `Cloudinary:ApiKey`, `Cloudinary:ApiSecret`). Without Cloudinary, Development may use `Media:AllowLocalDevStorage` → in-memory FakeImageStorage (never Production). Production never falls back to FakeImageStorage.
+5b. **DemoCatalog (Development only, human-facing rich seed):** separate from LocalDevFixtures. `DemoCatalog:Enabled=true` in `appsettings.Development.json` (default `false` in `appsettings.json`). Idempotent create-missing Arabic categories/products with `DEMO-*` SKUs; attaches images only when files exist under `wwwroot/demo-catalog/`. Re-seed intentionally via `.\scripts\seed-demo-catalog.ps1` (or API Development startup). Does **not** wipe E2E fixtures or arbitrary catalog rows. Never enable in Production/CI.
+
+6. **Local media (optional but needed for real upload E2E):** set Cloudinary user-secrets (`Cloudinary:CloudName`, `Cloudinary:ApiKey`, `Cloudinary:ApiSecret`). Without Cloudinary, Development may use `Media:AllowLocalDevStorage` → in-memory FakeImageStorage (never Production). Production never falls back to FakeImageStorage. DemoCatalog media is served as static files from `/demo-catalog/...` (not Cloudinary).
 
 7. **Login rate limit:** normal policy is 20/min. Widened to 200/min only when **both** Development **and** `LocalDevFixtures:Enabled` are true.
 

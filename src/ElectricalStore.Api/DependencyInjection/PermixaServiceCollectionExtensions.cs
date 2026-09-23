@@ -121,6 +121,8 @@ public static class PermixaServiceCollectionExtensions
 
         services.Configure<LocalDevFixtureOptions>(
             configuration.GetSection(LocalDevFixtureOptions.SectionName));
+        services.Configure<DemoCatalogOptions>(
+            configuration.GetSection(DemoCatalogOptions.SectionName));
 
         if (environment.IsDevelopment()
             && configuration.GetValue("Permixa:AppSeed:Enabled", false))
@@ -133,6 +135,12 @@ public static class PermixaServiceCollectionExtensions
         {
             services.AddScoped<LocalDevCatalogFixtureSeeder>();
             services.AddScoped<LocalDevAccountFixtureSeeder>();
+        }
+
+        if (environment.IsDevelopment()
+            && configuration.GetValue($"{DemoCatalogOptions.SectionName}:Enabled", false))
+        {
+            services.AddScoped<DemoCatalogSeeder>();
         }
 
         services.AddScoped<ICustomerIdentityLookup, PermixaCustomerIdentityLookup>();
