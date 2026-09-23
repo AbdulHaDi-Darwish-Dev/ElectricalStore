@@ -109,7 +109,7 @@ export function AddToCartControl({
           aria-live="polite"
           className={
             messageTone === "success"
-              ? "text-sm font-medium text-accent-foreground"
+              ? "text-sm font-medium text-success-foreground"
               : "text-sm font-medium text-destructive"
           }
         >

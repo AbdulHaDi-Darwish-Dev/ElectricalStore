@@ -26,7 +26,7 @@ export function AdminSidebarNav({ onNavigate }: AdminSidebarProps) {
       <ul className="space-y-4">
         {sections.map((section) => (
           <li key={section.id}>
-            <p className="px-3 pb-1 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+            <p className="px-3 pb-1 text-[11px] font-semibold tracking-wide text-sidebar-muted uppercase">
               {section.label}
             </p>
             <ul className="space-y-0.5">
@@ -40,8 +40,8 @@ export function AdminSidebarNav({ onNavigate }: AdminSidebarProps) {
                       aria-current={active ? "page" : undefined}
                       className={
                         active
-                          ? "block rounded-md bg-accent px-3 py-2 text-sm font-medium text-accent-foreground"
-                          : "block rounded-md px-3 py-2 text-sm text-foreground hover:bg-muted"
+                          ? "block rounded-md bg-sidebar-accent px-3 py-2 text-sm font-medium text-sidebar-accent-foreground"
+                          : "block rounded-md px-3 py-2 text-sm text-sidebar-foreground/90 hover:bg-sidebar-accent/70 hover:text-sidebar-accent-foreground"
                       }
                     >
                       {item.label}

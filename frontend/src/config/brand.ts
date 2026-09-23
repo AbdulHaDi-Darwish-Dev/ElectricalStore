@@ -1,22 +1,35 @@
 /**
- * Commercial brand identity — centralized and temporary.
- * ElectricalStore is the technical project name only; do not treat it as the store brand.
- * Replace these placeholders when the commercial identity is finalized.
+ * Commercial brand identity (presentation only).
+ * ElectricalStore remains the technical project name — not the storefront brand.
  */
 export const brand = {
-  /** Temporary commercial display name (Arabic). */
-  name: "اسم المتجر",
-  /** Short label for compact UI (header mark, mobile). */
-  shortName: "المتجر",
-  /** Neutral temporary description — not marketing copy. */
-  description: "واجهة مؤقتة للمتجر. سيتم استبدال الاسم والشعار والهوية عند اعتماد العلامة التجارية.",
-  /** Public logo path under /public, or null until assets exist. */
-  logoSrc: null as string | null,
-  logoAlt: "شعار المتجر",
-  /** Optional dark-variant logo; unused until a dark theme exists. */
-  logoDarkSrc: null as string | null,
-  /** Favicon path; leave null to use the app default until brand assets exist. */
-  faviconSrc: null as string | null,
+  /** Primary commercial display name (Arabic-first storefront). */
+  name: "فولتانو",
+  /** Latin wordmark. */
+  nameEn: "VOLTANO",
+  /** Compact label for tight UI. */
+  shortName: "فولتانو",
+  /** Brand concept (not embedded in the logo lockup). */
+  concept: "CONTROLLED ENERGY",
+  /** Storefront-facing description. */
+  description: "حلول كهربائية موثوقة، من المنتج إلى المشروع.",
+  /** Primary mark (light surfaces). */
+  logoMarkSrc: "/brand/mark.svg",
+  /** Mark for dark surfaces. */
+  logoMarkDarkSrc: "/brand/mark-reversed.svg",
+  /** Monochrome mark. */
+  logoMarkMonoSrc: "/brand/mark-mono.svg",
+  /** Horizontal English lockup SVG (asset reference). */
+  logoSrc: "/brand/lockup-horizontal.svg",
+  /** Horizontal lockup for dark surfaces. */
+  logoDarkSrc: "/brand/lockup-horizontal-dark.svg",
+  /** Arabic lockup SVG (asset reference). */
+  logoArSrc: "/brand/lockup-ar.svg",
+  logoAlt: "فولتانو — VOLTANO",
+  faviconSrc: "/brand/favicon.svg",
+  /** Optional Open Graph brand image. */
+  ogImageSrc: "/brand/og-mark.svg",
+  themeColor: "#1769FF",
 } as const;
 
 export type BrandConfig = typeof brand;

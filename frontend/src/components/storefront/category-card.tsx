@@ -10,16 +10,16 @@ export function CategoryCard({ category }: CategoryCardProps) {
   return (
     <Link
       href={`/categories/${category.id}`}
-      className="group flex h-full flex-col overflow-hidden rounded-md border border-border bg-card transition hover:border-primary/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+      className="group flex h-full flex-col overflow-hidden rounded-lg border border-border bg-card shadow-[var(--shadow-card-sm)] transition duration-200 hover:border-primary/30 hover:shadow-[var(--shadow-card)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
     >
-      <div className="relative aspect-[16/10] w-full bg-muted">
+      <div className="relative aspect-[16/10] w-full overflow-hidden bg-muted">
         {category.imageUrl ? (
           <Image
             src={category.imageUrl}
             alt={category.name}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="object-cover transition duration-300 group-hover:scale-[1.02]"
+            className="object-cover transition duration-300 group-hover:scale-[1.03]"
           />
         ) : (
           <div
@@ -30,8 +30,8 @@ export function CategoryCard({ category }: CategoryCardProps) {
           </div>
         )}
       </div>
-      <div className="flex flex-1 flex-col gap-2 p-4">
-        <h3 className="text-base font-medium text-foreground group-hover:text-primary">
+      <div className="flex flex-1 flex-col gap-2 p-4 sm:p-5">
+        <h3 className="text-base font-semibold leading-6 text-foreground transition group-hover:text-primary">
           {category.name}
         </h3>
         {category.description ? (

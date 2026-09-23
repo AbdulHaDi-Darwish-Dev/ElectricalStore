@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
+import { BrandLogo } from "@/components/brand/brand-logo";
 import { brand } from "@/config/brand";
 import { useAuthActions } from "@/lib/auth";
 import { AdminSidebarNav } from "./admin-sidebar-nav";
@@ -24,16 +25,18 @@ export function AdminShellChrome({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-full bg-background">
       {/* Desktop sidebar — natural RTL start edge via border-e */}
-      <aside className="hidden w-64 shrink-0 flex-col border-e border-border bg-card md:flex">
-        <div className="border-b border-border px-4 py-4">
-          <p className="text-xs text-muted-foreground">لوحة الإدارة</p>
-          <p className="text-base font-semibold text-foreground">{brand.shortName}</p>
+      <aside className="hidden w-64 shrink-0 flex-col border-e border-sidebar-border bg-sidebar text-sidebar-foreground md:flex">
+        <div className="border-b border-sidebar-border px-4 py-4">
+          <p className="text-xs text-sidebar-muted">لوحة الإدارة</p>
+          <div className="mt-2">
+            <BrandLogo surface="dark" markSize={24} />
+          </div>
         </div>
         <AdminSidebarNav />
-        <div className="mt-auto space-y-1 border-t border-border p-3 text-sm">
+        <div className="mt-auto space-y-1 border-t border-sidebar-border p-3 text-sm">
           <Link
             href="/"
-            className="block rounded-md px-3 py-2 text-foreground hover:bg-muted"
+            className="block rounded-md px-3 py-2 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
           >
             العودة إلى المتجر
           </Link>
@@ -41,7 +44,7 @@ export function AdminShellChrome({ children }: { children: ReactNode }) {
             type="button"
             onClick={() => void onLogout()}
             disabled={loggingOut}
-            className="block w-full rounded-md px-3 py-2 text-start text-foreground hover:bg-muted disabled:opacity-60"
+            className="block w-full rounded-md px-3 py-2 text-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground disabled:opacity-60"
           >
             {loggingOut ? "جاري الخروج…" : "تسجيل الخروج"}
           </button>
@@ -82,21 +85,21 @@ export function AdminShellChrome({ children }: { children: ReactNode }) {
         {mobileOpen ? (
           <div
             id="admin-mobile-nav"
-            className="border-b border-border bg-card md:hidden"
+            className="border-b border-sidebar-border bg-sidebar text-sidebar-foreground md:hidden"
           >
             <AdminSidebarNav onNavigate={() => setMobileOpen(false)} />
-            <div className="space-y-1 border-t border-border p-3 text-sm">
+            <div className="space-y-1 border-t border-sidebar-border p-3 text-sm">
               <Link
                 href="/"
                 onClick={() => setMobileOpen(false)}
-                className="block rounded-md px-3 py-2 hover:bg-muted"
+                className="block rounded-md px-3 py-2 hover:bg-sidebar-accent"
               >
                 العودة إلى المتجر
               </Link>
               <Link
                 href="/account"
                 onClick={() => setMobileOpen(false)}
-                className="block rounded-md px-3 py-2 hover:bg-muted"
+                className="block rounded-md px-3 py-2 hover:bg-sidebar-accent"
               >
                 حسابي
               </Link>
@@ -104,7 +107,7 @@ export function AdminShellChrome({ children }: { children: ReactNode }) {
                 type="button"
                 onClick={() => void onLogout()}
                 disabled={loggingOut}
-                className="block w-full rounded-md px-3 py-2 text-start hover:bg-muted disabled:opacity-60"
+                className="block w-full rounded-md px-3 py-2 text-start hover:bg-sidebar-accent disabled:opacity-60"
               >
                 {loggingOut ? "جاري الخروج…" : "تسجيل الخروج"}
               </button>

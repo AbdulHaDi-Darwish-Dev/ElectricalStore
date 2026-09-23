@@ -60,7 +60,7 @@ export function OrderConfirmationView() {
   return (
     <div className="space-y-8">
       <header className="space-y-3 rounded-md border border-border bg-card p-6">
-        <p className="text-sm font-medium text-accent-foreground">تم استلام طلبك</p>
+        <p className="text-sm font-medium text-success-foreground">تم استلام طلبك</p>
         <h1 className="text-3xl font-semibold tracking-tight text-foreground">
           رقم الطلب {order.orderNumber}
         </h1>

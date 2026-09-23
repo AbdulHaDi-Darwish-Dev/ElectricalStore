@@ -20,7 +20,7 @@ export function CartBadge() {
     <Link
       href="/cart"
       aria-label={getCartBadgeAriaLabel(display)}
-      className="relative inline-flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm text-foreground transition hover:border-primary/40 hover:text-primary"
+      className="relative inline-flex h-9 items-center gap-2 rounded-md border border-border bg-card px-3 text-sm text-foreground transition hover:border-primary/35 hover:text-primary"
     >
       <span>السلة</span>
       {display.kind === "pending" ? (

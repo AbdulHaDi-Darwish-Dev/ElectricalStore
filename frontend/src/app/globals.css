@@ -1,29 +1,53 @@
 @import "tailwindcss";
 
 /*
-  Semantic design tokens — brand-agnostic.
-  Change these centrally when the commercial identity is finalized.
-  Prefer bg-primary / text-foreground over raw color utilities for brand surfaces.
+  VOLTANO semantic design tokens.
+  Prefer bg-primary / text-foreground over raw hex in components.
 */
 
 :root {
-  --background: #f7f6f3;
-  --foreground: #1c1917;
-  --card: #ffffff;
-  --card-foreground: #1c1917;
-  --primary: #1f4e3d;
-  --primary-foreground: #f5faf7;
-  --secondary: #e8e4dc;
-  --secondary-foreground: #1c1917;
-  --muted: #efece6;
-  --muted-foreground: #57534e;
-  --accent: #dce8e2;
-  --accent-foreground: #1f4e3d;
+  --voltano-blue: #1769ff;
+  --voltano-night: #0b1220;
+  --voltano-cyan: #26d7c9;
+  --voltano-cloud: #f6f8fb;
+  --voltano-white: #ffffff;
+  --voltano-ink: #111827;
+  --voltano-muted: #667085;
+  --voltano-border: #dce3ec;
+
+  --background: var(--voltano-cloud);
+  --foreground: var(--voltano-ink);
+  --card: var(--voltano-white);
+  --card-foreground: var(--voltano-ink);
+  --primary: var(--voltano-blue);
+  --primary-foreground: #ffffff;
+  --secondary: #e8eef6;
+  --secondary-foreground: var(--voltano-ink);
+  --muted: #eef2f7;
+  --muted-foreground: var(--voltano-muted);
+  --accent: #e8f0ff;
+  --accent-foreground: var(--voltano-blue);
   --destructive: #b42318;
   --destructive-foreground: #fff7f6;
-  --border: #d6d3cd;
-  --ring: #1f4e3d;
-  --radius: 0.5rem;
+  --success: #067647;
+  --success-foreground: #067647;
+  --success-muted: #ecfdf3;
+  --success-background: var(--success-muted);
+  --success-border: #abefc6;
+  --border: var(--voltano-border);
+  --ring: var(--voltano-blue);
+  --radius: 0.625rem;
+
+  --sidebar: var(--voltano-night);
+  --sidebar-foreground: #f3f6fb;
+  --sidebar-muted: #94a3b8;
+  --sidebar-border: #1b2436;
+  --sidebar-accent: rgb(23 105 255 / 0.18);
+  --sidebar-accent-foreground: #ffffff;
+
+  --shadow-card: 0 8px 30px rgb(11 18 32 / 0.07);
+  --shadow-card-sm: 0 1px 2px rgb(11 18 32 / 0.05);
+  --focus-ring: 0 0 0 3px rgb(23 105 255 / 0.24);
 }
 
 @theme inline {
@@ -41,9 +65,21 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-muted: var(--success-muted);
+  --color-success-background: var(--success-background);
+  --color-success-border: var(--success-border);
   --color-border: var(--border);
   --color-ring: var(--ring);
-  --font-sans: var(--font-arabic-sans), "Tahoma", "Segoe UI", sans-serif;
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-muted: var(--sidebar-muted);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --font-sans: var(--font-ui), var(--font-latin), "Tahoma", "Segoe UI", sans-serif;
+  --font-display: var(--font-heading), var(--font-latin), "Tahoma", "Segoe UI", sans-serif;
   --radius-sm: calc(var(--radius) - 2px);
   --radius-md: var(--radius);
   --radius-lg: calc(var(--radius) + 2px);
@@ -57,11 +93,20 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
 }
 
 :focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
+  box-shadow: var(--focus-ring);
 }
 
 .sr-only {
@@ -74,4 +119,50 @@ body {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border-width: 0;
+}
+
+/* Subtle VOLT LINE motif — decorative only, keep away from dense text */
+.volt-line {
+  position: absolute;
+  inset-inline-end: -2%;
+  bottom: 12%;
+  width: min(42vw, 28rem);
+  height: 2px;
+  pointer-events: none;
+  background: linear-gradient(
+    to left,
+    transparent 0%,
+    rgb(23 105 255 / 0.35) 35%,
+    rgb(38 215 201 / 0.55) 52%,
+    rgb(23 105 255 / 0.2) 70%,
+    transparent 100%
+  );
+  transform: rotate(-18deg);
+  transform-origin: center;
+}
+
+.volt-line::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: 48%;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  background: var(--voltano-cyan);
+  box-shadow: 0 0 0 3px rgb(23 105 255 / 0.2);
+  transform: translate(-50%, -50%);
+}
+
+.volt-line-footer {
+  height: 1px;
+  width: 100%;
+  max-width: 12rem;
+  background: linear-gradient(
+    to left,
+    transparent,
+    rgb(38 215 201 / 0.7),
+    rgb(23 105 255 / 0.45),
+    transparent
+  );
 }

@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useId, useState } from "react";
-import { brand } from "@/config/brand";
 import { storefrontNav } from "@/config/navigation";
+import { BrandLogo } from "@/components/brand/brand-logo";
 import { CartBadge } from "@/components/cart/cart-badge";
 import {
   selectAuthReady,
@@ -12,6 +12,12 @@ import {
   useAuthActions,
   useAuthStore,
 } from "@/lib/auth";
+
+function navLinkClass(active: boolean) {
+  return active
+    ? "font-medium text-primary"
+    : "text-muted-foreground transition hover:text-foreground";
+}
 
 export function StorefrontHeader() {
   const pathname = usePathname();
@@ -42,7 +48,7 @@ export function StorefrontHeader() {
     <>
       <Link
         href="/account"
-        className="text-sm text-foreground hover:text-primary"
+        className="text-sm text-muted-foreground transition hover:text-foreground"
         onClick={closeMenu}
       >
         حسابي
@@ -51,7 +57,7 @@ export function StorefrontHeader() {
         type="button"
         onClick={() => void onLogout()}
         disabled={loggingOut}
-        className="text-sm text-foreground hover:text-primary disabled:opacity-60"
+        className="text-sm text-muted-foreground transition hover:text-foreground disabled:opacity-60"
       >
         {loggingOut ? "جاري الخروج…" : "تسجيل الخروج"}
       </button>
@@ -60,14 +66,14 @@ export function StorefrontHeader() {
     <>
       <Link
         href="/login"
-        className="text-sm text-foreground hover:text-primary"
+        className="text-sm text-muted-foreground transition hover:text-foreground"
         onClick={closeMenu}
       >
         تسجيل الدخول
       </Link>
       <Link
         href="/register"
-        className="text-sm text-foreground hover:text-primary"
+        className="inline-flex h-9 items-center rounded-md bg-primary px-3.5 text-sm font-medium text-primary-foreground transition hover:opacity-95"
         onClick={closeMenu}
       >
         إنشاء حساب
@@ -77,17 +83,17 @@ export function StorefrontHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/80 bg-card/95 backdrop-blur-sm">
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-6">
+      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-3.5 sm:gap-4 sm:px-6">
         <Link
           href="/"
           onClick={closeMenu}
-          className="text-lg font-semibold tracking-tight text-foreground hover:text-primary"
+          className="transition hover:opacity-90"
         >
-          {brand.shortName}
+          <BrandLogo markSize={26} />
         </Link>
 
         <nav aria-label="التنقل الرئيسي" className="hidden md:block">
-          <ul className="flex items-center gap-6 text-sm">
+          <ul className="flex items-center gap-7 text-sm">
             {storefrontNav.map((item) => {
               const active =
                 item.href === "/"
@@ -98,11 +104,7 @@ export function StorefrontHeader() {
                   <Link
                     href={item.href}
                     aria-current={active ? "page" : undefined}
-                    className={
-                      active
-                        ? "font-medium text-primary"
-                        : "text-foreground hover:text-primary"
-                    }
+                    className={navLinkClass(active)}
                   >
                     {item.label}
                   </Link>
@@ -112,12 +114,12 @@ export function StorefrontHeader() {
           </ul>
         </nav>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5 sm:gap-3">
           <div className="hidden items-center gap-3 md:flex">{authLinks}</div>
           <CartBadge />
           <button
             type="button"
-            className="inline-flex items-center justify-center rounded-md border border-border px-3 py-2 text-sm text-foreground md:hidden"
+            className="inline-flex h-9 items-center justify-center rounded-md border border-border bg-card px-3 text-sm text-foreground transition hover:bg-muted/60 md:hidden"
             aria-expanded={open}
             aria-controls={menuId}
             onClick={() => setOpen((value) => !value)}
@@ -209,7 +211,7 @@ export function StorefrontHeader() {
                   <Link
                     href="/register"
                     onClick={closeMenu}
-                    className="block py-3 text-sm text-foreground"
+                    className="block py-3 text-sm font-medium text-primary"
                   >
                     إنشاء حساب
                   </Link>

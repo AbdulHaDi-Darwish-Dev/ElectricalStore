@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" fill="none">
+  <rect width="1200" height="630" fill="#0B1220"/>
+  <path
+    d="M470 180 L560 420"
+    stroke="#FFFFFF"
+    stroke-width="28"
+    stroke-linecap="round"
+  />
+  <path
+    d="M730 180 L640 405"
+    stroke="#FFFFFF"
+    stroke-width="28"
+    stroke-linecap="round"
+  />
+  <circle cx="600" cy="450" r="22" fill="#FFFFFF"/>
+  <circle cx="600" cy="450" r="9" fill="#26D7C9"/>
+  <text
+    x="600"
+    y="545"
+    fill="#FFFFFF"
+    font-family="Manrope, Arial, sans-serif"
+    font-size="64"
+    font-weight="700"
+    letter-spacing="0.12em"
+    text-anchor="middle"
+  >VOLTANO</text>
+</svg>

@@ -14,8 +14,8 @@ export const site = {
    * Neutral catalog SEO fallback when a product/category has no description.
    * Editable centrally — not marketing copy.
    */
-  catalogDescription: "تصفح تصنيفات ومنتجات المتجر.",
-  /** Default document title template; uses temporary brand.name. */
+  catalogDescription: "تصفح تصنيفات ومنتجات فولتانو.",
+  /** Default document title template; uses brand.name. */
   get defaultTitle() {
     return brand.name;
   },

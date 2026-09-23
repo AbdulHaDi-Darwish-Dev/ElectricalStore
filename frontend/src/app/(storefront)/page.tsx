@@ -28,51 +28,53 @@ export default async function StorefrontHomePage() {
 
   return (
     <>
-      <section className="relative overflow-hidden border-b border-border">
+      <section className="relative overflow-hidden border-b border-border bg-secondary/60">
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--accent)_0%,_transparent_55%),linear-gradient(180deg,_var(--secondary)_0%,_var(--background)_100%)]"
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_120%_90%_at_70%_-10%,_color-mix(in_oklab,var(--primary)_18%,transparent)_0%,_transparent_58%)]"
         />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-[0.35] [background-image:linear-gradient(var(--border)_1px,transparent_1px),linear-gradient(90deg,var(--border)_1px,transparent_1px)] [background-size:48px_48px] [mask-image:linear-gradient(to_bottom,black,transparent)]"
-        />
-        <div className="relative mx-auto flex min-h-[70vh] w-full max-w-6xl flex-col justify-end gap-6 px-4 pb-16 pt-20 sm:px-6 sm:pb-20 sm:pt-28">
-          <p className="text-sm font-medium tracking-wide text-accent-foreground">
-            {brand.shortName}
+        <div className="volt-line hidden sm:block" aria-hidden />
+        <div className="relative mx-auto flex w-full max-w-6xl flex-col justify-center gap-5 px-4 py-16 sm:gap-6 sm:px-6 sm:py-20 lg:py-24">
+          <p className="text-sm font-semibold tracking-[0.14em] text-primary">
+            {brand.nameEn}
           </p>
-          <h1 className="max-w-3xl text-4xl font-semibold leading-tight tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+          <h1 className="max-w-3xl text-4xl font-semibold leading-[1.15] tracking-tight text-foreground sm:text-5xl lg:text-[3.25rem]">
             {brand.name}
           </h1>
-          <p className="max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
-            تصفح التصنيفات والمنتجات المتاحة في المتجر.
+          <p className="max-w-xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
+            {brand.description}
           </p>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap items-center gap-3 pt-1">
             <Link
               href="/categories"
-              className="rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:opacity-90"
+              className="inline-flex h-11 items-center justify-center rounded-md bg-primary px-6 text-sm font-medium text-primary-foreground transition hover:opacity-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
             >
-              التصنيفات
+              تصفح التصنيفات
             </Link>
             <Link
               href="/products"
-              className="rounded-md border border-border bg-card px-5 py-2.5 text-sm font-medium text-foreground hover:border-primary/40"
+              className="inline-flex h-11 items-center justify-center rounded-md border border-border bg-card px-6 text-sm font-medium text-foreground transition hover:border-primary/35 hover:bg-muted/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
             >
-              المنتجات
+              عرض المنتجات
             </Link>
           </div>
         </div>
       </section>
 
-      <section className="mx-auto w-full max-w-6xl space-y-6 px-4 py-12 sm:px-6">
+      <section className="mx-auto w-full max-w-6xl space-y-6 px-4 py-12 sm:space-y-7 sm:px-6 sm:py-14">
         <div className="flex flex-wrap items-end justify-between gap-3">
-          <div className="space-y-1">
-            <h2 className="text-2xl font-semibold text-foreground">التصنيفات</h2>
-            <p className="text-sm text-muted-foreground">
+          <div className="space-y-1.5">
+            <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+              التصنيفات
+            </h2>
+            <p className="text-sm leading-6 text-muted-foreground">
               ابدأ من التصنيف المناسب لما تبحث عنه.
             </p>
           </div>
-          <Link href="/categories" className="text-sm text-primary hover:underline">
+          <Link
+            href="/categories"
+            className="text-sm font-medium text-primary transition hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          >
             عرض كل التصنيفات
           </Link>
         </div>
@@ -86,28 +88,35 @@ export default async function StorefrontHomePage() {
         )}
       </section>
 
-      <section className="mx-auto w-full max-w-6xl space-y-6 px-4 pb-16 sm:px-6">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div className="space-y-1">
-            <h2 className="text-2xl font-semibold text-foreground">منتجات للتصفح</h2>
-            <p className="text-sm text-muted-foreground">
-              عيّنة من المنتجات المتاحة في الكتالوج.
-            </p>
+      <section className="border-t border-border bg-card/40">
+        <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-12 sm:space-y-7 sm:px-6 sm:py-14">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div className="space-y-1.5">
+              <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+                منتجات للتصفح
+              </h2>
+              <p className="text-sm leading-6 text-muted-foreground">
+                عيّنة من المنتجات المتاحة في الكتالوج.
+              </p>
+            </div>
+            <Link
+              href="/products"
+              className="text-sm font-medium text-primary transition hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            >
+              عرض كل المنتجات
+            </Link>
           </div>
-          <Link href="/products" className="text-sm text-primary hover:underline">
-            عرض كل المنتجات
-          </Link>
+          {featuredProducts.length === 0 ? (
+            <EmptyState
+              title="لا توجد منتجات حالياً"
+              description="لم تُنشر أي منتجات للعرض العام بعد."
+              actionHref="/categories"
+              actionLabel="تصفح التصنيفات"
+            />
+          ) : (
+            <ProductGrid products={featuredProducts} />
+          )}
         </div>
-        {featuredProducts.length === 0 ? (
-          <EmptyState
-            title="لا توجد منتجات حالياً"
-            description="لم تُنشر أي منتجات للعرض العام بعد."
-            actionHref="/categories"
-            actionLabel="تصفح التصنيفات"
-          />
-        ) : (
-          <ProductGrid products={featuredProducts} />
-        )}
       </section>
     </>
   );
