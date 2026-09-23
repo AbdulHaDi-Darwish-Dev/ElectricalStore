@@ -75,6 +75,67 @@ public static class AccountEndpoints
             .WithName("ResendCustomerEmailVerification")
             .WithSummary("Resend registration email verification (anti-enumeration public response)");
 
+        account.MapPost("/password/forgot", async (
+                CustomerPasswordForgotRequest request,
+                RequestCustomerPasswordResetUseCase useCase,
+                CancellationToken cancellationToken) =>
+            {
+                var result = await useCase.ExecuteAsync(request, cancellationToken);
+                return result.ToHttpResult();
+            })
+            .AllowAnonymous()
+            .RequireRateLimiting("PasswordForgot")
+            .WithName("ForgotCustomerPassword")
+            .WithSummary("Request password reset email (anti-enumeration public response)");
+
+        account.MapPost("/password/reset", async (
+                CustomerPasswordResetRequest request,
+                ResetCustomerPasswordUseCase useCase,
+                CancellationToken cancellationToken) =>
+            {
+                var result = await useCase.ExecuteAsync(request, cancellationToken);
+                return result.IsSuccess
+                    ? Results.Ok(new { reset = true })
+                    : result.ToHttpResult();
+            })
+            .AllowAnonymous()
+            .WithName("ResetCustomerPassword")
+            .WithSummary("Reset password using Permixa password-reset challenge + token");
+
+        account.MapPost("/email-change/request", async (
+                CustomerEmailChangeRequestDto request,
+                ICurrentUser currentUser,
+                RequestCustomerEmailChangeUseCase useCase,
+                CancellationToken cancellationToken) =>
+            {
+                if (currentUser.UserId is null)
+                    return Results.Unauthorized();
+
+                var result = await useCase.ExecuteAsync(
+                    currentUser.UserId.Value,
+                    request,
+                    cancellationToken);
+                return result.ToHttpResult();
+            })
+            .RequireAuthorization()
+            .RequireRateLimiting("EmailChangeRequest")
+            .WithName("RequestCustomerEmailChange")
+            .WithSummary("Request email change (requires current password; confirmation sent to new email)");
+
+        account.MapPost("/email-change/confirm", async (
+                CustomerEmailChangeConfirmDto request,
+                ConfirmCustomerEmailChangeUseCase useCase,
+                CancellationToken cancellationToken) =>
+            {
+                var result = await useCase.ExecuteAsync(request, cancellationToken);
+                return result.IsSuccess
+                    ? Results.Ok(new { changed = true, email = result.Value.Email })
+                    : result.ToHttpResult();
+            })
+            .AllowAnonymous()
+            .WithName("ConfirmCustomerEmailChange")
+            .WithSummary("Confirm email change using Permixa EmailChange challenge + token");
+
         account.MapGet("/profile", async (
                 ICurrentUser currentUser,
                 GetCustomerProfileUseCase useCase,

@@ -53,3 +53,36 @@ export const changePasswordFormSchema = z
   });
 
 export type ChangePasswordFormValues = z.infer<typeof changePasswordFormSchema>;
+
+export const forgotPasswordFormSchema = z.object({
+  email: z
+    .string()
+    .trim()
+    .email("البريد الإلكتروني غير صالح")
+    .max(256, "البريد طويل جداً"),
+});
+
+export type ForgotPasswordFormValues = z.infer<typeof forgotPasswordFormSchema>;
+
+export const resetPasswordFormSchema = z
+  .object({
+    newPassword: passwordSchema,
+    confirmNewPassword: z.string().min(1, "تأكيد كلمة المرور الجديدة مطلوب"),
+  })
+  .refine((data) => data.newPassword === data.confirmNewPassword, {
+    message: "كلمتا المرور غير متطابقتين",
+    path: ["confirmNewPassword"],
+  });
+
+export type ResetPasswordFormValues = z.infer<typeof resetPasswordFormSchema>;
+
+export const changeEmailFormSchema = z.object({
+  newEmail: z
+    .string()
+    .trim()
+    .email("البريد الإلكتروني غير صالح")
+    .max(256, "البريد طويل جداً"),
+  currentPassword: z.string().min(1, "كلمة المرور الحالية مطلوبة"),
+});
+
+export type ChangeEmailFormValues = z.infer<typeof changeEmailFormSchema>;

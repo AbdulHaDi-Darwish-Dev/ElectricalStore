@@ -79,6 +79,152 @@ public sealed class DevEmailOutboxRenderingTests : IClassFixture<DevOutboxWebApp
     }
 
     [Fact]
+    public async Task Outbox_CapturesArabicPasswordResetHtml()
+    {
+        var client = _factory.CreateClient();
+        await client.DeleteAsync("/dev/email-outbox");
+
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var email = $"outbox-reset-{suffix}@example.test";
+        const string password = "Customer-Outbox-Reset-1!";
+
+        (await client.PostAsJsonAsync("/account/register", new
+        {
+            fullName = "مستخدم إعادة التعيين",
+            email,
+            password
+        })).EnsureSuccessStatusCode();
+
+        // Confirm via API using JSON outbox payload, then request reset.
+        using (var listRequest = new HttpRequestMessage(HttpMethod.Get, "/dev/email-outbox"))
+        {
+            listRequest.Headers.Accept.ParseAdd("application/json");
+            var listResponse = await client.SendAsync(listRequest);
+            listResponse.EnsureSuccessStatusCode();
+            var verifyMessages = (await listResponse.Content.ReadFromJsonAsync<List<OutboxItem>>(Json))!;
+            var verify = Assert.Single(
+                verifyMessages,
+                m => string.Equals(m.To, email, StringComparison.OrdinalIgnoreCase));
+            var verifyMatch = System.Text.RegularExpressions.Regex.Match(
+                verify.TextBody,
+                @"challengeId=([0-9a-fA-F-]{36})&token=([^\s]+)");
+            Assert.True(verifyMatch.Success);
+            (await client.PostAsJsonAsync("/account/email-verification/confirm", new
+            {
+                challengeId = Guid.Parse(verifyMatch.Groups[1].Value),
+                token = Uri.UnescapeDataString(verifyMatch.Groups[2].Value)
+            })).EnsureSuccessStatusCode();
+        }
+
+        await client.DeleteAsync("/dev/email-outbox");
+        using (var forgotRequest = new HttpRequestMessage(HttpMethod.Post, "/account/password/forgot")
+        {
+            Content = JsonContent.Create(new { email })
+        })
+        {
+            forgotRequest.Headers.TryAddWithoutValidation(
+                ElectricalStore.Api.Hosting.TestConnectingIpStartupFilter.HeaderName,
+                $"198.51.100.{Random.Shared.Next(10, 200)}");
+            (await client.SendAsync(forgotRequest)).EnsureSuccessStatusCode();
+        }
+
+        using var resetList = new HttpRequestMessage(HttpMethod.Get, "/dev/email-outbox");
+        resetList.Headers.Accept.ParseAdd("application/json");
+        var resetResponse = await client.SendAsync(resetList);
+        resetResponse.EnsureSuccessStatusCode();
+        var resetMessages = (await resetResponse.Content.ReadFromJsonAsync<List<OutboxItem>>(Json))!;
+        var message = Assert.Single(
+            resetMessages,
+            m => string.Equals(m.To, email, StringComparison.OrdinalIgnoreCase));
+
+        Assert.Contains("إعادة تعيين", message.Subject, StringComparison.Ordinal);
+        Assert.Contains("reset-password", message.TextBody, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("dir=\"rtl\"", message.HtmlBody, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("إعادة تعيين كلمة المرور", message.HtmlBody, StringComparison.Ordinal);
+        Assert.Contains("إذا لم تطلب", message.HtmlBody, StringComparison.Ordinal);
+
+        var preview = await client.GetAsync($"/dev/email-outbox/{message.Id:D}/preview");
+        preview.EnsureSuccessStatusCode();
+        Assert.Equal(message.HtmlBody, await preview.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
+    public async Task Outbox_CapturesArabicEmailChangeHtml()
+    {
+        var client = _factory.CreateClient();
+        await client.DeleteAsync("/dev/email-outbox");
+
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var oldEmail = $"outbox-ec-old-{suffix}@example.test";
+        var newEmail = $"outbox-ec-new-{suffix}@example.test";
+        const string password = "Customer-Outbox-Ec-1!";
+
+        (await client.PostAsJsonAsync("/account/register", new
+        {
+            fullName = "مستخدم تغيير البريد",
+            email = oldEmail,
+            password
+        })).EnsureSuccessStatusCode();
+
+        using (var listRequest = new HttpRequestMessage(HttpMethod.Get, "/dev/email-outbox"))
+        {
+            listRequest.Headers.Accept.ParseAdd("application/json");
+            var listResponse = await client.SendAsync(listRequest);
+            listResponse.EnsureSuccessStatusCode();
+            var verifyMessages = (await listResponse.Content.ReadFromJsonAsync<List<OutboxItem>>(Json))!;
+            var verify = Assert.Single(
+                verifyMessages,
+                m => string.Equals(m.To, oldEmail, StringComparison.OrdinalIgnoreCase));
+            var verifyMatch = System.Text.RegularExpressions.Regex.Match(
+                verify.TextBody,
+                @"challengeId=([0-9a-fA-F-]{36})&token=([^\s]+)");
+            Assert.True(verifyMatch.Success);
+            (await client.PostAsJsonAsync("/account/email-verification/confirm", new
+            {
+                challengeId = Guid.Parse(verifyMatch.Groups[1].Value),
+                token = Uri.UnescapeDataString(verifyMatch.Groups[2].Value)
+            })).EnsureSuccessStatusCode();
+        }
+
+        var login = await client.PostAsJsonAsync("/auth/login", new
+        {
+            emailOrUserName = oldEmail,
+            password
+        });
+        login.EnsureSuccessStatusCode();
+        using var loginDoc = JsonDocument.Parse(await login.Content.ReadAsStringAsync());
+        var accessToken = loginDoc.RootElement.GetProperty("accessToken").GetString()!;
+
+        await client.DeleteAsync("/dev/email-outbox");
+        using var changeRequest = new HttpRequestMessage(HttpMethod.Post, "/account/email-change/request")
+        {
+            Content = JsonContent.Create(new { newEmail, currentPassword = password })
+        };
+        changeRequest.Headers.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+        (await client.SendAsync(changeRequest)).EnsureSuccessStatusCode();
+
+        using var changeList = new HttpRequestMessage(HttpMethod.Get, "/dev/email-outbox");
+        changeList.Headers.Accept.ParseAdd("application/json");
+        var changeResponse = await client.SendAsync(changeList);
+        changeResponse.EnsureSuccessStatusCode();
+        var changeMessages = (await changeResponse.Content.ReadFromJsonAsync<List<OutboxItem>>(Json))!;
+        var message = Assert.Single(
+            changeMessages,
+            m => string.Equals(m.To, newEmail, StringComparison.OrdinalIgnoreCase));
+
+        Assert.Contains("تأكيد تغيير البريد", message.Subject, StringComparison.Ordinal);
+        Assert.Contains("change-email/confirm", message.TextBody, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("dir=\"rtl\"", message.HtmlBody, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("تأكيد تغيير البريد الإلكتروني", message.HtmlBody, StringComparison.Ordinal);
+        Assert.Contains("إذا لم تطلب", message.HtmlBody, StringComparison.Ordinal);
+
+        var preview = await client.GetAsync($"/dev/email-outbox/{message.Id:D}/preview");
+        preview.EnsureSuccessStatusCode();
+        Assert.Equal(message.HtmlBody, await preview.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
     public async Task Outbox_BrowserAccept_ReturnsHtmlIndex()
     {
         var client = _factory.CreateClient();

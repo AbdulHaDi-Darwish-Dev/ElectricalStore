@@ -22,6 +22,7 @@ export function getCustomerProfileErrorMessage(
     case "DuplicateEmail":
       return "يوجد حساب بنفس البريد الإلكتروني. إذا سبق أن أنشأت حساباً، يمكنك إعادة إرسال رسالة التأكيد.";
     case "Authentication.InvalidPassword":
+    case "Customer.PasswordPolicyFailed":
     case "Identity.PasswordRequiresDigit":
     case "Identity.PasswordRequiresLower":
     case "Identity.PasswordRequiresUpper":
@@ -29,18 +30,45 @@ export function getCustomerProfileErrorMessage(
     case "Identity.PasswordTooShort":
       return "كلمة المرور لا تستوفي متطلبات الأمان (٨ أحرف على الأقل مع حرف كبير وصغير ورقم ورمز).";
     case "Authentication.CurrentPasswordInvalid":
+    case "Customer.CurrentPasswordInvalid":
       return "كلمة المرور الحالية غير صحيحة.";
+    case "Customer.EmailAlreadyInUse":
+      return "هذا البريد الإلكتروني مستخدم بالفعل.";
+    case "Customer.EmailUnchanged":
+      return "البريد الجديد مطابق للبريد الحالي.";
+    case "Customer.EmailChangeDeliveryFailed":
+    case "Verification.DeliveryFailed":
+      return "تعذر إرسال رسالة التأكيد. حاول لاحقاً.";
+    case "Customer.EmailChangeCooldownActive":
+      return "يرجى الانتظار قليلاً قبل طلب تغيير آخر.";
+    case "Customer.EmailChangeUnavailable":
+      return "تعذر تغيير البريد لهذا الحساب.";
+    case "Customer.EmailChangeLinkExpired":
+      return "انتهت صلاحية رابط تأكيد تغيير البريد. اطلب رابطاً جديداً.";
+    case "Customer.EmailChangeLinkUsed":
+      return "هذا الرابط لم يعد صالحًا. اطلب رابطًا جديدًا.";
+    case "Customer.EmailChangeLinkInvalid":
+    case "Customer.EmailChangeConfirmFailed":
+    case "Customer.EmailChangeRequestFailed":
+      return "تعذر تأكيد تغيير البريد الإلكتروني.";
+    case "Customer.EmailChangeSessionRevocationFailed":
+    case "Customer.PasswordResetSessionRevocationFailed":
+      return "تعذر إكمال تأمين الجلسات. حاول تسجيل الدخول مجددًا أو تواصل مع الدعم.";
     case "Authentication.EmailNotConfirmed":
       return "يجب تأكيد بريدك الإلكتروني قبل تسجيل الدخول.";
+    case "Customer.PasswordResetLinkExpired":
     case "Verification.Expired":
-      return "انتهت صلاحية رابط التأكيد. اطلب رسالة جديدة.";
+      return "انتهت صلاحية الرابط. اطلب رابطاً جديداً.";
+    case "Customer.PasswordResetLinkUsed":
+    case "Verification.AlreadyConsumed":
+    case "Verification.Invalidated":
+      return "هذا الرابط لم يعد صالحًا. اطلب رابطًا جديدًا.";
+    case "Customer.PasswordResetLinkInvalid":
+    case "Customer.PasswordResetFailed":
     case "Verification.InvalidToken":
     case "Verification.InvalidCode":
     case "Verification.ChallengeNotFound":
-    case "Verification.Invalidated":
-      return "رابط التأكيد غير صالح.";
-    case "Verification.DeliveryFailed":
-      return "تعذر إرسال رسالة التأكيد. حاول إعادة الإرسال لاحقاً.";
+      return "رابط إعادة التعيين غير صالح.";
     default:
       if (status === 429) {
         return "تم تجاوز حد المحاولات. يرجى الانتظار قليلاً ثم إعادة المحاولة.";
@@ -58,3 +86,7 @@ export function getCustomerProfileErrorMessage(
 /** Generic anti-enumeration copy for resend. */
 export const EMAIL_VERIFICATION_RESEND_GENERIC =
   "إذا وُجد حساب مؤهل بهذا البريد، فسيتم إرسال رسالة التأكيد.";
+
+/** Generic anti-enumeration copy for forgot-password. */
+export const PASSWORD_RESET_REQUEST_GENERIC =
+  "إذا كان هناك حساب مؤهل مرتبط بهذا البريد، فقد أرسلنا رابط إعادة تعيين كلمة المرور.";

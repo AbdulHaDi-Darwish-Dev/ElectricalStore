@@ -10,6 +10,7 @@ using Permixa.AspNetCore.RateLimiting;
 using Permixa.Email.Resend;
 using Permixa.Infrastructure;
 using Permixa.Infrastructure.Email;
+using Permixa.Application.Verification.Abstractions;
 
 namespace ElectricalStore.Api.DependencyInjection;
 
@@ -94,6 +95,28 @@ public static class PermixaServiceCollectionExtensions
                 p.Window = TimeSpan.FromMinutes(15);
                 p.Partition = PermixaRateLimitPartitionKind.RemoteIp;
             });
+
+            // Public forgot-password is anti-enumeration; still bound by IP.
+            // Development + LocalDevFixtures widens like Login so Playwright recovery journeys
+            // do not trip the production-class 5/15min budget on loopback.
+            o.AddSlidingWindow("PasswordForgot", p =>
+            {
+                var fixturesEnabled = configuration.GetValue(
+                    $"{LocalDevFixtureOptions.SectionName}:Enabled", false);
+                p.PermitLimit = environment.IsDevelopment() && fixturesEnabled ? 100 : 5;
+                p.Window = TimeSpan.FromMinutes(15);
+                p.Partition = PermixaRateLimitPartitionKind.RemoteIp;
+            });
+
+            // Authenticated email-change request; partition by user when available.
+            o.AddSlidingWindow("EmailChangeRequest", p =>
+            {
+                var fixturesEnabled = configuration.GetValue(
+                    $"{LocalDevFixtureOptions.SectionName}:Enabled", false);
+                p.PermitLimit = environment.IsDevelopment() && fixturesEnabled ? 40 : 5;
+                p.Window = TimeSpan.FromMinutes(15);
+                p.Partition = PermixaRateLimitPartitionKind.AuthenticatedUserId;
+            });
         });
 
         services.Configure<LocalDevFixtureOptions>(
@@ -115,6 +138,8 @@ public static class PermixaServiceCollectionExtensions
         services.AddScoped<ICustomerIdentityLookup, PermixaCustomerIdentityLookup>();
         services.AddScoped<ICustomerIdentityCompensation, PermixaCustomerIdentityCompensation>();
         services.AddScoped<ICustomerEmailConfirmationGateway, PermixaCustomerEmailConfirmationGateway>();
+        services.AddScoped<ICustomerPasswordResetGateway, PermixaCustomerPasswordResetGateway>();
+        services.AddScoped<ICustomerEmailChangeGateway, PermixaCustomerEmailChangeGateway>();
         services.AddScoped<RegisterCustomerOrchestrator>();
 
         return services;
@@ -155,7 +180,7 @@ public static class PermixaServiceCollectionExtensions
             o.FromName = string.IsNullOrWhiteSpace(email.FromName) ? email.FromEmail.Trim() : email.FromName.Trim();
             o.EmailConfirmationUrlTemplate =
                 $"{frontend}/verify-email?challengeId={{challengeId}}&token={{token}}";
-            // Required by Permixa validation; forgot-password remains deferred product work.
+            // Required by Permixa email delivery validation; used by customer forgot/reset.
             o.PasswordResetUrlTemplate =
                 $"{frontend}/reset-password?challengeId={{challengeId}}&token={{token}}";
             o.Branding.ApplicationName = string.IsNullOrWhiteSpace(email.Branding.ApplicationName)
@@ -168,6 +193,11 @@ public static class PermixaServiceCollectionExtensions
 
         services.RemoveAll<IEmailTemplateRenderer>();
         services.AddSingleton<IEmailTemplateRenderer, ArabicEmailTemplateRenderer>();
+
+        // Replace Permixa dispatcher so EmailChange uses host Arabic template + confirm URL.
+        services.AddSingleton<EmailVerificationDispatcher>();
+        services.RemoveAll<IVerificationDispatcher>();
+        services.AddSingleton<IVerificationDispatcher, HostVerificationDispatcher>();
 
         if (useCapturing)
         {

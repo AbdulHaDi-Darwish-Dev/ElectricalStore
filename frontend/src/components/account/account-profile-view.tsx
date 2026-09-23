@@ -12,11 +12,14 @@ import {
   PASSWORD_POLICY_HINT,
   accountProfileKeys,
   changeCustomerPassword,
+  changeEmailFormSchema,
   changePasswordFormSchema,
   getCustomerProfile,
   getCustomerProfileErrorMessage,
+  requestCustomerEmailChange,
   updateCustomerProfile,
   updateProfileFormSchema,
+  type ChangeEmailFormValues,
   type ChangePasswordFormValues,
   type UpdateProfileFormValues,
 } from "@/features/account-profile";
@@ -38,6 +41,11 @@ export function AccountProfileView() {
   const [profileError, setProfileError] = useState<string | null>(null);
   const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [emailChangeOpen, setEmailChangeOpen] = useState(false);
+  const [emailChangeMessage, setEmailChangeMessage] = useState<string | null>(
+    null,
+  );
+  const [emailChangeError, setEmailChangeError] = useState<string | null>(null);
 
   const profileForm = useForm<UpdateProfileFormValues>({
     resolver: zodResolver(updateProfileFormSchema),
@@ -52,6 +60,14 @@ export function AccountProfileView() {
       currentPassword: "",
       newPassword: "",
       confirmNewPassword: "",
+    },
+  });
+
+  const emailChangeForm = useForm<ChangeEmailFormValues>({
+    resolver: zodResolver(changeEmailFormSchema),
+    defaultValues: {
+      newEmail: "",
+      currentPassword: "",
     },
   });
 
@@ -101,6 +117,31 @@ export function AccountProfileView() {
     },
   });
 
+  const emailChangeMutation = useMutation({
+    mutationFn: (values: ChangeEmailFormValues) =>
+      requestCustomerEmailChange({
+        newEmail: values.newEmail.trim(),
+        currentPassword: values.currentPassword,
+      }),
+    onSuccess: () => {
+      setEmailChangeError(null);
+      emailChangeForm.reset();
+      setEmailChangeMessage(
+        "أرسلنا رسالة تأكيد إلى بريدك الإلكتروني الجديد. يبقى بريدك الحالي فعّالاً حتى التأكيد. تحقق من الوارد/الرسائل غير المرغوب فيها؛ ينتهي صلاحية الرابط خلال ساعة تقريباً.",
+      );
+    },
+    onError: (error) => {
+      setEmailChangeMessage(null);
+      if (error instanceof ApiError) {
+        setEmailChangeError(
+          getCustomerProfileErrorMessage(error.code, error.status),
+        );
+        return;
+      }
+      setEmailChangeError(getCustomerProfileErrorMessage(undefined));
+    },
+  });
+
   if (profileQuery.isLoading) {
     return (
       <div className="space-y-4" aria-busy="true">
@@ -139,6 +180,17 @@ export function AccountProfileView() {
             <dd className="mt-1 font-medium" dir="ltr">
               {profile?.email}
             </dd>
+            <button
+              type="button"
+              className="mt-2 text-sm text-primary hover:underline"
+              onClick={() => {
+                setEmailChangeOpen((v) => !v);
+                setEmailChangeError(null);
+                if (!emailChangeOpen) setEmailChangeMessage(null);
+              }}
+            >
+              تغيير البريد الإلكتروني
+            </button>
           </div>
           <div>
             <dt className="text-muted-foreground">تأكيد البريد</dt>
@@ -185,6 +237,79 @@ export function AccountProfileView() {
             {updateMutation.isPending ? "جاري الحفظ…" : "حفظ الاسم"}
           </button>
         </form>
+
+        {emailChangeOpen ? (
+          <form
+            className="max-w-lg space-y-3 border-t border-border pt-4"
+            onSubmit={emailChangeForm.handleSubmit((v) =>
+              emailChangeMutation.mutate(v),
+            )}
+            noValidate
+          >
+            <h3 className="text-sm font-medium">تغيير البريد الإلكتروني</h3>
+            <p className="text-xs text-muted-foreground">
+              سنرسل رابط تأكيد إلى البريد الجديد. يبقى بريدك الحالي فعّالاً حتى
+              التأكيد.
+            </p>
+            <div className="space-y-1.5">
+              <label htmlFor="newEmail" className="text-sm font-medium">
+                البريد الإلكتروني الجديد
+              </label>
+              <input
+                id="newEmail"
+                type="email"
+                dir="ltr"
+                autoComplete="email"
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+                {...emailChangeForm.register("newEmail")}
+              />
+              {emailChangeForm.formState.errors.newEmail ? (
+                <p className="text-sm text-destructive" role="alert">
+                  {emailChangeForm.formState.errors.newEmail.message}
+                </p>
+              ) : null}
+            </div>
+            <div className="space-y-1.5">
+              <label
+                htmlFor="emailChangeCurrentPassword"
+                className="text-sm font-medium"
+              >
+                كلمة المرور الحالية
+              </label>
+              <input
+                id="emailChangeCurrentPassword"
+                type="password"
+                autoComplete="current-password"
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+                {...emailChangeForm.register("currentPassword")}
+              />
+              {emailChangeForm.formState.errors.currentPassword ? (
+                <p className="text-sm text-destructive" role="alert">
+                  {emailChangeForm.formState.errors.currentPassword.message}
+                </p>
+              ) : null}
+            </div>
+            {emailChangeError ? (
+              <p className="text-sm text-destructive" role="alert">
+                {emailChangeError}
+              </p>
+            ) : null}
+            {emailChangeMessage ? (
+              <p className="text-sm text-muted-foreground" role="status">
+                {emailChangeMessage}
+              </p>
+            ) : null}
+            <button
+              type="submit"
+              disabled={emailChangeMutation.isPending}
+              className="rounded-md border border-border px-4 py-2 text-sm font-medium hover:bg-muted disabled:opacity-60"
+            >
+              {emailChangeMutation.isPending
+                ? "جاري الإرسال…"
+                : "إرسال رابط التأكيد"}
+            </button>
+          </form>
+        ) : null}
       </section>
 
       <section className="rounded-md border border-border bg-card p-6">

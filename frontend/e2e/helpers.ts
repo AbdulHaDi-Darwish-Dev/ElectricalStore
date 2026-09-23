@@ -88,6 +88,66 @@ export function extractVerificationPath(textBody: string): string {
   return match[1];
 }
 
+export function extractResetPasswordPath(textBody: string): string {
+  const match = textBody.match(
+    /https?:\/\/[^\s]+(\/reset-password\?challengeId=[0-9a-fA-F-]{36}&token=[^\s]+)/,
+  );
+  if (!match) {
+    throw new Error("Password reset link not found in email text body");
+  }
+  return match[1];
+}
+
+export function extractChangeEmailPath(textBody: string): string {
+  const match = textBody.match(
+    /https?:\/\/[^\s]+(\/change-email\/confirm\?challengeId=[0-9a-fA-F-]{36}&token=[^\s]+)/,
+  );
+  if (!match) {
+    throw new Error("Change-email link not found in email text body");
+  }
+  return match[1];
+}
+
+export async function openLatestPasswordResetEmail(
+  page: Page,
+  email: string,
+): Promise<string> {
+  const mailbox = await fetchDevEmailOutbox();
+  const message = [...mailbox]
+    .reverse()
+    .find(
+      (m) =>
+        m.to.toLowerCase() === email.toLowerCase() &&
+        m.textBody.includes("/reset-password"),
+    );
+  if (!message) {
+    throw new Error(`No password-reset email for ${email}`);
+  }
+  const path = extractResetPasswordPath(message.textBody);
+  await page.goto(path);
+  return path;
+}
+
+export async function openLatestChangeEmailConfirm(
+  page: Page,
+  newEmail: string,
+): Promise<string> {
+  const mailbox = await fetchDevEmailOutbox();
+  const message = [...mailbox]
+    .reverse()
+    .find(
+      (m) =>
+        m.to.toLowerCase() === newEmail.toLowerCase() &&
+        m.textBody.includes("/change-email/confirm"),
+    );
+  if (!message) {
+    throw new Error(`No change-email confirmation for ${newEmail}`);
+  }
+  const path = extractChangeEmailPath(message.textBody);
+  await page.goto(path);
+  return path;
+}
+
 export async function confirmLatestVerificationEmail(
   page: Page,
   email: string,

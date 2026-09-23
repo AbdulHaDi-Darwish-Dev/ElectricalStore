@@ -79,7 +79,30 @@ Playwright tests use dedicated Development accounts and a gitignored env file. *
 
 7. **Login rate limit:** normal policy is 20/min. Widened to 200/min only when **both** Development **and** `LocalDevFixtures:Enabled` are true.
 
-8. **Email verification (Development):** `Email:UseCapturingSender=true` captures outbound mail. Open `http://localhost:5180/dev/email-outbox` in a browser for a message list + **Open HTML preview** (exact captured HTML). Automation uses the same URL with `Accept: application/json` (or `*/*`). For real Resend locally, set user-secrets `Email:Resend:ApiKey`, `Email:FromEmail`, `Email:FrontendPublicUrl=http://localhost:3100`, and `Email:UseCapturingSender=false`. Fixture/Owner accounts are auto-marked `EmailConfirmed` so admin/E2E login keeps working under `RequireConfirmedEmail`.
+8. **Email verification + password reset + change email (Development):** `Email:UseCapturingSender=true` captures outbound mail. Open `http://localhost:5180/dev/email-outbox` in a browser for a message list + **Open HTML preview** (exact captured HTML). Automation uses the same URL with `Accept: application/json` (or `*/*`).
+
+   **Verify email:** register → open confirmation mail → `/verify-email?challengeId=…&token=…`.
+
+   **Forgot / reset password:**
+   1. Open `http://localhost:3100/forgot-password` (or login → **نسيت كلمة المرور؟**)
+   2. Submit email → generic success copy (anti-enumeration; delivery failure still returns the same generic response)
+   3. Open `/dev/email-outbox` → password-reset message (subject **إعادة تعيين كلمة المرور**) → **Open HTML preview**
+   4. Follow link to `/reset-password?challengeId=…&token=…` → set new password → login (no auto-login)
+   5. Successful reset **revokes all refresh families**; already-issued access JWTs may remain valid until ~15 min expiry (stateless)
+
+   **Change email (authenticated):**
+   1. Login → `/account` → **تغيير البريد الإلكتروني** → new email + current password (required; bearer alone is not enough)
+   2. Active email stays old until confirm; PendingEmail is set in Identity
+   3. Open `/dev/email-outbox` → message to the **new** address (subject **تأكيد تغيير البريد الإلكتروني**) → preview
+   4. Follow `/change-email/confirm?challengeId=…&token=…` → success → re-login with **new** email (no auto-login; refresh sessions revoked)
+   5. After confirm, a security notice may also appear for the **old** address (no token; best-effort — failure does not roll back the change)
+   6. Authenticated delivery failure surfaces as **503** (unlike public forgot-password anti-enumeration)
+
+   Technical UserName remains `customer-{Guid}` through password reset and email change. Stateless access JWTs may remain valid until ~15 min expiry after either sensitive confirm; renewable refresh sessions are revoked on both.
+
+   For real Resend locally, set user-secrets `Email:Resend:ApiKey`, `Email:FromEmail`, `Email:FrontendPublicUrl=http://localhost:3100`, and `Email:UseCapturingSender=false`. Fixture/Owner accounts are auto-marked `EmailConfirmed` so admin/E2E login keeps working under `RequireConfirmedEmail`.
+
+   **Rate limits:** `EmailVerificationResend` = **5 / 15 minutes / RemoteIp**. `PasswordForgot` = **5 / 15 minutes / RemoteIp** (100 when Dev+LocalDevFixtures). `EmailChangeRequest` = **5 / 15 minutes / AuthenticatedUserId** (40 when Dev+LocalDevFixtures). Permixa UrlToken challenge cooldown ≈ **1 minute** (factory tests shorten via `Email:ResendCooldownSeconds`).
 
 See also [`frontend/e2e/README.md`](../frontend/e2e/README.md).
 

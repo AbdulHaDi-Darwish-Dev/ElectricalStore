@@ -49,3 +49,41 @@ export type ResendEmailVerificationRequest = {
 export type ResendEmailVerificationResponse = {
   message: string;
 };
+
+export type ForgotPasswordRequest = {
+  email: string;
+};
+
+export type ForgotPasswordResponse = {
+  message: string;
+};
+
+export type ResetPasswordRequest = {
+  challengeId: string;
+  token: string;
+  newPassword: string;
+};
+
+export type ResetPasswordResponse = {
+  reset: boolean;
+};
+
+export type RequestEmailChangeRequest = {
+  newEmail: string;
+  currentPassword: string;
+};
+
+export type RequestEmailChangeResponse = {
+  message: string;
+  pendingEmail?: string | null;
+};
+
+export type ConfirmEmailChangeRequest = {
+  challengeId: string;
+  token: string;
+};
+
+export type ConfirmEmailChangeResponse = {
+  changed: boolean;
+  email?: string | null;
+};

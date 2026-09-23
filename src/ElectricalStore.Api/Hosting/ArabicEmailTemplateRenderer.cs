@@ -106,7 +106,6 @@ public sealed class ArabicEmailTemplateRenderer : IEmailTemplateRenderer
     public RenderedEmail RenderEmailConfirmationOtp(EmailConfirmationOtpTemplateModel model)
     {
         ArgumentNullException.ThrowIfNull(model);
-        // Host registration uses UrlToken; keep a safe Arabic OTP fallback for Permixa completeness.
         var app = Encode(model.ApplicationName);
         var code = Encode(model.VerificationCode);
         var html = $"""
@@ -123,16 +122,93 @@ public sealed class ArabicEmailTemplateRenderer : IEmailTemplateRenderer
     public RenderedEmail RenderPasswordReset(PasswordResetTemplateModel model)
     {
         ArgumentNullException.ThrowIfNull(model);
-        // Deferred product feature — keep brand-safe Arabic shell for Permixa completeness.
+
         var app = Encode(model.ApplicationName);
+        var company = Encode(model.CompanyName);
+        var support = Encode(model.SupportEmail);
         var url = EncodeAttr(model.ResetUrl);
+        var urlText = Encode(model.ResetUrl);
+        var minutes = model.ExpirationMinutes;
+
+        var companyBlock = string.IsNullOrWhiteSpace(model.CompanyName)
+            ? string.Empty
+            : $"<p style=\"margin:8px 0 0;font-size:13px;color:#555;\">{company}</p>";
+
+        var supportBlock = string.IsNullOrWhiteSpace(model.SupportEmail)
+            ? string.Empty
+            : $"<p style=\"margin:20px 0 0;font-size:12px;color:#666;\">للمساعدة: {support}</p>";
+
+        var logoBlock = string.IsNullOrWhiteSpace(model.LogoUrl)
+            ? string.Empty
+            : $"<img src=\"{EncodeAttr(model.LogoUrl)}\" alt=\"\" width=\"120\" style=\"display:block;margin:0 0 16px;border:0;\" />";
+
         var html = $"""
-            <!DOCTYPE html><html lang="ar" dir="rtl"><body style="font-family:Tahoma,Arial,sans-serif;">
-            <h1>{app}</h1>
-            <p><a href="{url}">إعادة تعيين كلمة المرور</a></p>
-            </body></html>
+            <!DOCTYPE html>
+            <html lang="ar" dir="rtl">
+            <head>
+              <meta charset="utf-8" />
+              <meta name="viewport" content="width=device-width, initial-scale=1" />
+              <title>إعادة تعيين كلمة المرور</title>
+            </head>
+            <body style="margin:0;padding:0;background-color:#f4f4f5;font-family:Tahoma,Arial,Helvetica,sans-serif;color:#222;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#f4f4f5;padding:24px 12px;">
+                <tr>
+                  <td align="center">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:560px;background-color:#ffffff;border:1px solid #e5e5e5;" dir="rtl">
+                      <tr>
+                        <td style="padding:28px 28px 8px;text-align:right;">
+                          {logoBlock}
+                          <h1 style="margin:0;font-size:22px;line-height:1.3;font-weight:700;">{app}</h1>
+                          {companyBlock}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding:8px 28px 28px;text-align:right;">
+                          <p style="margin:0 0 20px;font-size:15px;line-height:1.7;">تم طلب إعادة تعيين كلمة المرور لحسابك. اضغط على الزر أدناه لاختيار كلمة مرور جديدة.</p>
+                          <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 20px;">
+                            <tr>
+                              <td align="center" style="background-color:#111111;border-radius:4px;">
+                                <a href="{url}" style="display:inline-block;padding:12px 22px;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;">إعادة تعيين كلمة المرور</a>
+                              </td>
+                            </tr>
+                          </table>
+                          <p style="margin:0 0 12px;font-size:13px;line-height:1.6;color:#555;">أو انسخ الرابط التالي وافتحه في المتصفح:</p>
+                          <p style="margin:0 0 16px;font-size:12px;line-height:1.5;word-break:break-all;color:#333;">{urlText}</p>
+                          <p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#555;">ينتهي صلاحية هذا الرابط خلال {minutes} دقيقة.</p>
+                          <p style="margin:0;font-size:13px;line-height:1.6;color:#666;">إذا لم تطلب إعادة تعيين كلمة المرور، يمكنك تجاهل هذه الرسالة بأمان. لن يتم تغيير كلمة مرورك.</p>
+                          {supportBlock}
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </body>
+            </html>
             """;
-        return new RenderedEmail("إعادة تعيين كلمة المرور", html, model.ResetUrl);
+
+        var companyLine = string.IsNullOrWhiteSpace(model.CompanyName) ? string.Empty : model.CompanyName + Environment.NewLine;
+        var supportLine = string.IsNullOrWhiteSpace(model.SupportEmail)
+            ? string.Empty
+            : Environment.NewLine + "للمساعدة: " + model.SupportEmail;
+
+        var text = new StringBuilder()
+            .AppendLine(model.ApplicationName)
+            .Append(companyLine)
+            .AppendLine("تم طلب إعادة تعيين كلمة المرور. افتح الرابط التالي لاختيار كلمة مرور جديدة:")
+            .AppendLine()
+            .AppendLine(model.ResetUrl)
+            .AppendLine()
+            .AppendLine($"ينتهي صلاحية هذا الرابط خلال {minutes} دقيقة.")
+            .AppendLine()
+            .AppendLine("إذا لم تطلب إعادة تعيين كلمة المرور، تجاهل هذه الرسالة. لن يتم تغيير كلمة مرورك.")
+            .Append(supportLine)
+            .ToString();
+
+        return new RenderedEmail(
+            Subject: "إعادة تعيين كلمة المرور",
+            HtmlBody: html,
+            TextBody: text);
     }
 
     private static string Encode(string? value) => WebUtility.HtmlEncode(value ?? string.Empty);

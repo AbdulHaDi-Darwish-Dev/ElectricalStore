@@ -8,8 +8,16 @@ import type {
   CustomerProfileDto,
   CustomerRegistrationRequest,
   CustomerRegistrationResponse,
+  ForgotPasswordRequest,
+  ForgotPasswordResponse,
   ResendEmailVerificationRequest,
   ResendEmailVerificationResponse,
+  ResetPasswordRequest,
+  ResetPasswordResponse,
+  RequestEmailChangeRequest,
+  RequestEmailChangeResponse,
+  ConfirmEmailChangeRequest,
+  ConfirmEmailChangeResponse,
   UpdateCustomerProfileRequest,
 } from "./types";
 
@@ -68,5 +76,47 @@ export function changeCustomerPassword(
   return authenticatedFetch<ChangePasswordResponse>("/account/change-password", {
     method: "POST",
     body,
+  });
+}
+
+export function requestCustomerPasswordReset(
+  body: ForgotPasswordRequest,
+): Promise<ForgotPasswordResponse> {
+  return apiFetch<ForgotPasswordResponse>("/account/password/forgot", {
+    method: "POST",
+    body,
+    cache: "no-store",
+  });
+}
+
+export function resetCustomerPassword(
+  body: ResetPasswordRequest,
+): Promise<ResetPasswordResponse> {
+  return apiFetch<ResetPasswordResponse>("/account/password/reset", {
+    method: "POST",
+    body,
+    cache: "no-store",
+  });
+}
+
+export function requestCustomerEmailChange(
+  body: RequestEmailChangeRequest,
+): Promise<RequestEmailChangeResponse> {
+  return authenticatedFetch<RequestEmailChangeResponse>(
+    "/account/email-change/request",
+    {
+      method: "POST",
+      body,
+    },
+  );
+}
+
+export function confirmCustomerEmailChange(
+  body: ConfirmEmailChangeRequest,
+): Promise<ConfirmEmailChangeResponse> {
+  return apiFetch<ConfirmEmailChangeResponse>("/account/email-change/confirm", {
+    method: "POST",
+    body,
+    cache: "no-store",
   });
 }

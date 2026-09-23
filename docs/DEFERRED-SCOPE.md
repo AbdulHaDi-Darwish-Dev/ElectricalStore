@@ -21,7 +21,7 @@
 - Product discounts, tax, multi-currency infrastructure, brand, SEO/slug, dynamic attributes, Product delete, pagination framework
 - **Variant images**; rich media library / DAM / generic media-management platform; image transformations/CDN policy UI; malware scanning; automatic recompression of existing assets when `MaxImageSizeMb` changes
 - Unified Permixa `AddPermixa()` facade (framework-side)
-- MFA / password-reset HTTP productization beyond email confirmation (when `--resend`)
+- MFA HTTP productization (when `--resend`); admin force-password-reset / session revoke adapters remain deferred (customer self-service forgot/reset **and** change-email are done)
 - Multi-tenancy
 - API versioning (do not introduce until a real backward-compatibility requirement exists)
 - Access Management HTTP adapters not wired in this freeze (Permixa use cases exist): admin user create/lock/disable/enable, admin email change, force password reset, session list/revoke; permission catalog create/update-description beyond seed

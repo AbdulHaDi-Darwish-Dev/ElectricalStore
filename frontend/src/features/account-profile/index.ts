@@ -5,20 +5,31 @@ export {
   getCustomerProfile,
   updateCustomerProfile,
   changeCustomerPassword,
+  requestCustomerPasswordReset,
+  resetCustomerPassword,
+  requestCustomerEmailChange,
+  confirmCustomerEmailChange,
 } from "./api";
 export { accountProfileKeys } from "./query-keys";
 export {
   customerRegisterFormSchema,
   updateProfileFormSchema,
   changePasswordFormSchema,
+  forgotPasswordFormSchema,
+  resetPasswordFormSchema,
+  changeEmailFormSchema,
   PASSWORD_POLICY_HINT,
   type CustomerRegisterFormValues,
   type UpdateProfileFormValues,
   type ChangePasswordFormValues,
+  type ForgotPasswordFormValues,
+  type ResetPasswordFormValues,
+  type ChangeEmailFormValues,
 } from "./schemas";
 export {
   getCustomerProfileErrorMessage,
   EMAIL_VERIFICATION_RESEND_GENERIC,
+  PASSWORD_RESET_REQUEST_GENERIC,
 } from "./errors";
 export type {
   CustomerProfileDto,
@@ -28,6 +39,14 @@ export type {
   ConfirmEmailResponse,
   ResendEmailVerificationRequest,
   ResendEmailVerificationResponse,
+  ForgotPasswordRequest,
+  ForgotPasswordResponse,
+  ResetPasswordRequest,
+  ResetPasswordResponse,
+  RequestEmailChangeRequest,
+  RequestEmailChangeResponse,
+  ConfirmEmailChangeRequest,
+  ConfirmEmailChangeResponse,
   UpdateCustomerProfileRequest,
   ChangePasswordRequest,
   ChangePasswordResponse,
