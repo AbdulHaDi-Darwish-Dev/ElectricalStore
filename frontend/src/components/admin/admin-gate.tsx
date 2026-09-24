@@ -35,7 +35,7 @@ export function AdminGate({ children }: AdminGateProps) {
 
   if (!ready) {
     return (
-      <div className="flex min-h-full items-center justify-center bg-background px-4 py-16">
+      <div className="flex min-h-screen items-center justify-center bg-background px-4 py-16">
         <div className="w-full max-w-md">
           <AdminLoadingState label="جاري التحقق من الجلسة…" />
         </div>
@@ -45,7 +45,7 @@ export function AdminGate({ children }: AdminGateProps) {
 
   if (!authenticated) {
     return (
-      <div className="flex min-h-full items-center justify-center bg-background px-4 py-16 text-sm text-muted-foreground">
+      <div className="flex min-h-screen items-center justify-center bg-background px-4 py-16 text-sm text-muted-foreground">
         جاري التحويل لتسجيل الدخول…
       </div>
     );
@@ -53,7 +53,7 @@ export function AdminGate({ children }: AdminGateProps) {
 
   if (!canAccessAdminShell(permissions)) {
     return (
-      <div className="flex min-h-full items-center justify-center bg-background px-4 py-16">
+      <div className="flex min-h-screen items-center justify-center bg-background px-4 py-16">
         <AdminAccessDenied
           title="لا يمكن فتح لوحة الإدارة"
           message="حسابك مسجّل الدخول لكنّه لا يملك أي صلاحية إدارية معروفة. لوحة الإدارة مخصّصة للحسابات التي لديها صلاحيات تشغيل أو إدارة وصول."

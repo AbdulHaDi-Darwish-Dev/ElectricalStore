@@ -28,7 +28,7 @@ export function AdminDashboard() {
             description="يمكنك البقاء في لوحة التحكم، لكن حسابك لا يملك صلاحيات لوحدات الكتالوج أو التشغيل أو الإعدادات أو إدارة الوصول."
           />
         ) : (
-          <ul className="grid gap-3 sm:grid-cols-2">
+          <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {modules.map((mod) => (
               <li key={mod.href}>
                 <Link

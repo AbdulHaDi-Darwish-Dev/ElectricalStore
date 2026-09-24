@@ -23,9 +23,9 @@ export function AdminShellChrome({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-full bg-background">
-      {/* Desktop sidebar — natural RTL start edge via border-e */}
-      <aside className="hidden w-64 shrink-0 flex-col border-e border-sidebar-border bg-sidebar text-sidebar-foreground md:flex">
+    <div className="flex min-h-screen bg-background">
+      {/* Desktop sidebar — sticky full viewport height; RTL start edge via border-e */}
+      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-e border-sidebar-border bg-sidebar text-sidebar-foreground md:flex">
         <div className="border-b border-sidebar-border px-4 py-4">
           <p className="text-xs text-sidebar-muted">لوحة الإدارة</p>
           <div className="mt-2">
@@ -51,34 +51,36 @@ export function AdminShellChrome({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center justify-between gap-3 border-b border-border bg-card px-4 py-3 sm:px-6">
-          <div className="flex min-w-0 items-center gap-3">
-            <button
-              type="button"
-              className="inline-flex items-center justify-center rounded-md border border-border px-3 py-2 text-sm md:hidden"
-              aria-expanded={mobileOpen}
-              aria-controls="admin-mobile-nav"
-              onClick={() => setMobileOpen((v) => !v)}
-            >
-              {mobileOpen ? "إغلاق القائمة" : "القائمة"}
-            </button>
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-foreground sm:text-base">
-                إدارة {brand.shortName}
-              </p>
-              <p className="hidden text-xs text-muted-foreground sm:block">
-                واجهة تشغيلية — الصلاحيات من الخادم
-              </p>
+      <div className="flex min-h-screen min-w-0 flex-1 flex-col">
+        <header className="border-b border-border bg-card">
+          <div className="mx-auto flex w-full max-w-[1400px] items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+            <div className="flex min-w-0 items-center gap-3">
+              <button
+                type="button"
+                className="inline-flex items-center justify-center rounded-md border border-border px-3 py-2 text-sm md:hidden"
+                aria-expanded={mobileOpen}
+                aria-controls="admin-mobile-nav"
+                onClick={() => setMobileOpen((v) => !v)}
+              >
+                {mobileOpen ? "إغلاق القائمة" : "القائمة"}
+              </button>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-foreground sm:text-base">
+                  إدارة {brand.shortName}
+                </p>
+                <p className="hidden text-xs text-muted-foreground sm:block">
+                  واجهة تشغيلية — الصلاحيات من الخادم
+                </p>
+              </div>
             </div>
-          </div>
-          <div className="hidden items-center gap-3 text-sm md:flex">
-            <Link href="/" className="text-foreground hover:text-primary">
-              المتجر
-            </Link>
-            <Link href="/account" className="text-foreground hover:text-primary">
-              حسابي
-            </Link>
+            <div className="hidden items-center gap-3 text-sm md:flex">
+              <Link href="/" className="text-foreground hover:text-primary">
+                المتجر
+              </Link>
+              <Link href="/account" className="text-foreground hover:text-primary">
+                حسابي
+              </Link>
+            </div>
           </div>
         </header>
 
@@ -116,7 +118,7 @@ export function AdminShellChrome({ children }: { children: ReactNode }) {
         ) : null}
 
         <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
-          <div className="mx-auto w-full max-w-5xl space-y-6">{children}</div>
+          <div className="mx-auto w-full max-w-[1400px] space-y-6">{children}</div>
         </main>
       </div>
     </div>
